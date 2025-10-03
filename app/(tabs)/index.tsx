@@ -1,98 +1,120 @@
-import { Image } from 'expo-image';
-import { Platform, StyleSheet } from 'react-native';
+import { useRouter } from "expo-router";
+import React from "react";
+import { Image, StyleSheet, Text, View } from "react-native";
+import BotonGeneral from "../../components/BotonGeneral"; // 👈 importa tu botón
 
-import { HelloWave } from '@/components/hello-wave';
-import ParallaxScrollView from '@/components/parallax-scroll-view';
-import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
-import { Link } from 'expo-router';
+export default function Index() {
+  const router = useRouter();
 
-export default function HomeScreen() {
   return (
-    <ParallaxScrollView
-      headerBackgroundColor={{ light: '#A1CEDC', dark: '#1D3D47' }}
-      headerImage={
-        <Image
-          source={require('@/assets/images/partial-react-logo.png')}
-          style={styles.reactLogo}
-        />
-      }>
-      <ThemedView style={styles.titleContainer}>
-        <ThemedText type="title">Welcome!</ThemedText>
-        <HelloWave />
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 1: Try it</ThemedText>
-        <ThemedText>
-          Edit <ThemedText type="defaultSemiBold">app/(tabs)/index.tsx</ThemedText> to see changes.
-          Press{' '}
-          <ThemedText type="defaultSemiBold">
-            {Platform.select({
-              ios: 'cmd + d',
-              android: 'cmd + m',
-              web: 'F12',
-            })}
-          </ThemedText>{' '}
-          to open developer tools.
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <Link href="/modal">
-          <Link.Trigger>
-            <ThemedText type="subtitle">Step 2: Explore</ThemedText>
-          </Link.Trigger>
-          <Link.Preview />
-          <Link.Menu>
-            <Link.MenuAction title="Action" icon="cube" onPress={() => alert('Action pressed')} />
-            <Link.MenuAction
-              title="Share"
-              icon="square.and.arrow.up"
-              onPress={() => alert('Share pressed')}
-            />
-            <Link.Menu title="More" icon="ellipsis">
-              <Link.MenuAction
-                title="Delete"
-                icon="trash"
-                destructive
-                onPress={() => alert('Delete pressed')}
-              />
-            </Link.Menu>
-          </Link.Menu>
-        </Link>
+    <View style={styles.container}>
+      {/* Huellita arriba izquierda */}
+      <Image
+        source={require("../../assets/images/navegacion/patas_superior.png")}
+        style={styles.ImagenSuperior}
+      />
 
-        <ThemedText>
-          {`Tap the Explore tab to learn more about what's included in this starter app.`}
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 3: Get a fresh start</ThemedText>
-        <ThemedText>
-          {`When you're ready, run `}
-          <ThemedText type="defaultSemiBold">npm run reset-project</ThemedText> to get a fresh{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> directory. This will move the current{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> to{' '}
-          <ThemedText type="defaultSemiBold">app-example</ThemedText>.
-        </ThemedText>
-      </ThemedView>
-    </ParallaxScrollView>
+      {/* Huellita abajo derecha */}
+      <Image
+        source={require("../../assets/images/navegacion/patas_inferior.png")}
+        style={styles.ImagenInferior}
+      />
+
+      {/* Contenedor de card + perritos */}
+      <View style={styles.cardContainer}>
+        {/* Perritos arriba del cuadro */}
+        <Image
+          source={require("../../assets/images/navegacion/perritos.png")}
+          style={styles.ImagenPerritos}
+        />
+
+        {/* Card central */}
+        <View style={styles.card}>
+          <Image
+            source={require("../../assets/images/navegacion/pata_centro.png")}
+            style={styles.ImagenPatita}
+          />
+          <Text style={styles.texto}>
+            ¡Bienvenido a <Text style={styles.negrilla}>Patas sin Barreras!</Text>
+          </Text>
+          <Text style={styles.texto}>
+            Porque cuidar a tu mascota nunca fue tan fácil.
+          </Text>
+          <Text style={styles.texto}>¡Empieza a agendar hoy mismo!</Text>
+        </View>
+      </View>
+
+      {/* Botón continuar */}
+      <View style={styles.botonContainer}>
+        <BotonGeneral
+          title="Continuar"
+          onPress={() => router.push("/Iniciarsesion1")}
+        />
+      </View>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  titleContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
+  container: { 
+    flex: 1, 
+    justifyContent: "center", 
+    alignItems: "center", 
+    backgroundColor: "#fff" 
   },
-  stepContainer: {
-    gap: 8,
-    marginBottom: 8,
+  cardContainer: {
+    alignItems: "center",
+    marginBottom: 20,
   },
-  reactLogo: {
-    height: 178,
-    width: 290,
-    bottom: 0,
-    left: 0,
-    position: 'absolute',
+  card: { 
+    width: "85%", 
+    borderWidth: 2, 
+    borderColor: "green", 
+    borderRadius: 15, 
+    padding: 20, 
+    alignItems: "center", 
+    marginTop: 40, // deja espacio para que los perritos no se solapen
+    backgroundColor: "#fff"
   },
+  ImagenPerritos: { 
+    width: 380, 
+    height: 100, 
+    position: "absolute", 
+    top: -50, // hace que los perritos queden sobre el cuadro
+    zIndex: 1 ,
+    resizeMode: "contain"
+  },
+  ImagenPatita: { 
+    width: 40, 
+    height: 40, 
+    marginBottom: 10 
+  },
+  texto: { 
+    fontSize: 16, 
+    textAlign: "center", 
+    marginBottom: 5 
+  },
+  negrilla: { 
+    fontWeight: "bold" 
+  },
+  botonContainer: { 
+    marginTop: 20, 
+    alignSelf: "center" 
+  },
+  ImagenSuperior: { 
+    position: "absolute", 
+    top: 20, 
+    left: 20, 
+    width: 80, 
+    height: 80, 
+    resizeMode: "contain"
+  },
+  ImagenInferior: { 
+    position: "absolute", 
+    bottom: 20, 
+    right: 20, 
+    width: 80, 
+    height: 80,
+    resizeMode: "contain"
+  }
 });
