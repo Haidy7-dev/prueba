@@ -1,7 +1,7 @@
+import BotonGeneral from "@/components/BotonGeneral";
 import { useRouter } from "expo-router";
 import React from "react";
 import { Image, StyleSheet, Text, View } from "react-native";
-import BotonGeneral from "../../components/BotonGeneral"; // 👈 importa tu botón
 
 export default function ElegirRol() {
   const router = useRouter();
@@ -10,7 +10,7 @@ export default function ElegirRol() {
     <View style={styles.container}>
       {/* Huellita arriba izquierda */}
       <Image
-        source={require("@/assets/images/navegacion/patas_superior.png")}
+        source={require("../../assets/images/navegacion/patas_superior.png")}
         style={styles.ImagenSuperior}
       />
 
@@ -19,7 +19,7 @@ export default function ElegirRol() {
 
       {/* Imagen central */}
       <Image
-        source={require("@/assets/images/navegacion/vete.png")} 
+        source={require("../../assets/images/navegacion/vete.png")} 
         style={styles.ImagenCentral}
         resizeMode="contain"
       />
@@ -39,7 +39,7 @@ export default function ElegirRol() {
 
       {/* Huellita abajo derecha */}
       <Image
-        source={require("@/assets/images/navegacion/patas_inferior.png")}
+        source={require("../../assets/images/navegacion/patas_inferior.png")}
         style={styles.ImagenInferior}
       />
     </View>

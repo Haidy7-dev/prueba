@@ -1,13 +1,26 @@
-import { Picker } from "@react-native-picker/picker";
+import { Ionicons } from '@expo/vector-icons';
+import { TouchableOpacity } from 'react-native';
+
 import { useRouter } from "expo-router";
 import React, { useState } from "react";
-import { ScrollView, StyleSheet, Text, TextInput, View, } from "react-native";
-import BotonGeneral from "../../components/BotonGeneral"; // 👈 importa tu botón
+import { Dimensions, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
+import BotonGeneral from "../../components/BotonGeneral";
 
+const screenWidth = Dimensions.get('window').width;
 
 export default function Registro() {
-  const [mascotas, setMascotas] = useState("1");
+  const [mascotas, setMascotas] = useState(1);
   const router = useRouter();
+
+  const Incremento = () => {
+    setMascotas(prevMascotas => prevMascotas + 1);
+  };
+
+  const Decremento = () => {
+    if (mascotas > 1) {
+      setMascotas(prevMascotas => prevMascotas - 1);
+    }
+  };
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
@@ -18,31 +31,23 @@ export default function Registro() {
       <TextInput placeholder="Segundo nombre" style={styles.input} />
       <TextInput placeholder="Primer apellido" style={styles.input} />
       <TextInput placeholder="Segundo apellido" style={styles.input} />
-      <TextInput
-        placeholder="Correo electrónico"
-        style={styles.input}
-        keyboardType="email-address"
-      />
+      <TextInput placeholder="Correo electrónico" style={styles.input} keyboardType="email-address" />
       <TextInput placeholder="Dirección de residencia" style={styles.input} />
-      <TextInput
-        placeholder="Teléfono"
-        style={styles.input}
-        keyboardType="phone-pad"
-      />
+      <TextInput placeholder="Teléfono" style={styles.input} keyboardType="phone-pad" />
 
-      {/* Selector número de mascotas */}
-      <View style={styles.pickerContainer}>
-        <Picker
-          selectedValue={mascotas}
-          onValueChange={(itemValue) => setMascotas(itemValue)}
-          style={styles.picker}
-        >
-          <Picker.Item label="1" value="1" />
-          <Picker.Item label="2" value="2" />
-          <Picker.Item label="3" value="3" />
-          <Picker.Item label="4" value="4" />
-          <Picker.Item label="5 o más" value="5" />
-        </Picker>
+      <View style={styles.stepperContainer}>
+        <Text style={styles.stepperLabel}>Número de mascotas</Text>
+        <View style={styles.stepperControl}>
+          <TouchableOpacity onPress={Decremento}>
+            <Ionicons name="chevron-down-outline" size={28} color="#4CAF50" />
+          </TouchableOpacity>
+          
+          <Text style={styles.stepperValue}>{mascotas}</Text>
+          
+          <TouchableOpacity onPress={Incremento}>
+            <Ionicons name="chevron-up-outline" size={28} color="#4CAF50" />
+          </TouchableOpacity>
+        </View>
       </View>
 
       <TextInput
@@ -50,8 +55,7 @@ export default function Registro() {
         style={styles.input}
         secureTextEntry
       />
-
-      {/* Botón reutilizable */}
+      
       <BotonGeneral
         title="Guardar"
         onPress={() => router.push("/Iniciarsesion1")}
@@ -71,26 +75,46 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 28,
     fontWeight: "bold",
-    color: "#0000",
+    color: "#0000", 
     marginBottom: 20,
+    marginTop: 20,
   },
   input: {
     borderWidth: 1,
     borderColor: "#4CAF50",
     borderRadius: 8,
     padding: 12,
-    width: "100%",
+    width: "90%",
     marginBottom: 12,
+    fontSize: 16,
+    minHeight: 50,
   },
-  pickerContainer: {
+  stepperContainer: {
     borderWidth: 1,
     borderColor: "#4CAF50",
     borderRadius: 8,
-    width: "100%",
+    width: "90%",
     marginBottom: 12,
+    minHeight: 50,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 15,
   },
-  picker: {
-    height: 50,
-    width: "100%",
+  stepperLabel: {
+    fontSize: 16,
+    color: '#555',
+  },
+  stepperControl: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  stepperValue: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#555',
+    marginHorizontal: 10,
+    minWidth: 20,
+    textAlign: 'center',
   },
 });

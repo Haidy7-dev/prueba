@@ -1,15 +1,7 @@
 import Checkbox from "expo-checkbox";
 import { useRouter } from "expo-router";
 import React, { useState } from "react";
-import {
-  Dimensions,
-  Image,
-  StyleSheet,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
-} from "react-native";
+import { Dimensions, Image, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
 
 const { width } = Dimensions.get("window");
 
@@ -21,7 +13,7 @@ const IniciarSesion1: React.FC = () => {
     <View style={styles.container}>
       {/* Logo */}
       <Image
-        source={require("@/assets/images/navegacion/logo.png")}
+        source={require("../../assets/images/navegacion/logo.png")}
         style={styles.logo}
         resizeMode="contain"
       />
@@ -53,14 +45,6 @@ const IniciarSesion1: React.FC = () => {
             />
             <Text style={styles.rememberText}>Recuérdame</Text>
           </View>
-          <TouchableOpacity>
-            <Text
-              onPress={() => router.push("./RecuperarContrasena")}
-              style={styles.forgotPassword}
-            >
-              ¿Olvidaste tu contraseña?
-            </Text>
-          </TouchableOpacity>
         </View>
 
         {/* Botones */}
@@ -81,7 +65,7 @@ const IniciarSesion1: React.FC = () => {
 
       {/* Patitas inferiores */}
       <Image
-        source={require("@/assets/images/navegacion/patas_abajo.png")}
+        source={require("../../assets/images/navegacion/patas_abajo.png")}
         style={styles.paws}
         resizeMode="contain"
       />
@@ -99,9 +83,9 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
   },
   logo: {
-    marginTop: 40,
-    width: width * 0.6,
-    height: 120,
+    marginTop: 50,
+    width: width * 0.6, // 60% del ancho de la pantalla
+    height: 170,
   },
   form: {
     width: "80%",
@@ -126,7 +110,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    marginTop: 10,
+    marginTop: 15,
   },
   rememberMe: {
     flexDirection: "row",
@@ -137,13 +121,8 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: "#333",
   },
-  forgotPassword: {
-    fontSize: 12,
-    color: "#6CBA79",
-    fontWeight: "600",
-  },
   loginButton: {
-    marginTop: 20,
+    marginTop: 35,
     borderWidth: 1,
     borderColor: "#6CBA79",
     borderRadius: 10,
@@ -151,20 +130,20 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   loginButtonText: {
-    color: "#6CBA79",
-    fontSize: 16,
+    color: "#479454",
+    fontSize: 20,
     fontWeight: "bold",
   },
   registerButton: {
-    marginTop: 10,
+    marginTop: 15,
     borderRadius: 10,
     paddingVertical: 12,
     alignItems: "center",
-    backgroundColor: "#6CBA79",
+    backgroundColor: "#479454",
   },
   registerButtonText: {
     color: "#fff",
-    fontSize: 16,
+    fontSize: 20,
     fontWeight: "bold",
   },
   paws: {

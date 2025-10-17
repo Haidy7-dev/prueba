@@ -1,5 +1,7 @@
 import React from 'react';
-import { StyleSheet, Text, TouchableOpacity } from 'react-native';
+import { Dimensions, StyleSheet, Text, TouchableOpacity } from 'react-native';
+
+const screenWidth = Dimensions.get('window').width;
 
 interface BotonGeneralProps {
   title: string;
@@ -17,15 +19,13 @@ const BotonGeneral: React.FC<BotonGeneralProps> = ({ title, onPress }) => {
 const styles = StyleSheet.create({
   button: {
     backgroundColor: '#479454',
-    paddingVertical: 12,
-    paddingHorizontal: 75,
+    paddingVertical: 12, // Altura del botón
+    paddingHorizontal: 20,
     borderRadius: 10,
-    alignItems: 'center',
-    alignSelf: 'center',
-    
-    
-  
+    alignSelf: 'center', // Centrar el botón horizontalmente
+    width: screenWidth * 0.80, // 80% del ancho de la pantalla
   },
+
   buttonText: {
     color: '#FFFFFF',
     fontSize: 20,

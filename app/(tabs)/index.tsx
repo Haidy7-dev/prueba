@@ -1,7 +1,7 @@
 import { useRouter } from "expo-router";
 import React from "react";
 import { Image, StyleSheet, Text, View } from "react-native";
-import BotonGeneral from "../../components/BotonGeneral"; // 👈 importa tu botón
+import BotonGeneral from "../../components/BotonGeneral";
 
 export default function Index() {
   const router = useRouter();
@@ -48,7 +48,7 @@ export default function Index() {
       <View style={styles.botonContainer}>
         <BotonGeneral
           title="Continuar"
-          onPress={() => router.push("/Iniciarsesion1")}
+          onPress={() => router.push("./Iniciarsesion1")}
         />
       </View>
     </View>

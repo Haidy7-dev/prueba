@@ -1,13 +1,14 @@
+import BotonGeneral from "@/components/BotonGeneral";
 import { Picker } from "@react-native-picker/picker";
 import axios from "axios";
 import { useRouter } from "expo-router";
 import React, { useEffect, useState } from "react";
 import { ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
-import BotonGeneral from "../../components/BotonGeneral"; // 👈 importa tu botón
 
 export default function RegistroVeteri() {
   const router = useRouter();
   const [Especializaciones, setEspecializaciones] = useState([]);
+  const [servicio, setservicio] = useState([]);
 
   const getEspecializaciones = async () => {
     try {
@@ -23,9 +24,27 @@ export default function RegistroVeteri() {
   useEffect(() => {
     getEspecializaciones();
   }, []);
+
+  const getservicio = async () => {
+    try {
+      const response = await axios.get(
+        "http://10.121.63.130:3000/api/servicio"
+      );
+        setservicio(response.data);
+    } catch (error) {
+      console.log("Error fetching data:", error);
+    }
+  };
+
+  useEffect(() => {
+    getservicio();
+  }, []);
+
+  
   // Estados para pickers
   const [especializacion, setEspecializacion] = useState("");
-  const [servicio, setServicio] = useState("");
+  const [servicios, setservicios] = useState("");
+
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
@@ -65,18 +84,20 @@ export default function RegistroVeteri() {
         </Picker>
       </View>
 
-      {/* Picker de Servicios */}
+      {/* Picker de servicio */}
       <View style={styles.pickerContainer}>
         <Picker
-          selectedValue={servicio}
-          onValueChange={(itemValue) => setServicio(itemValue)}
+          selectedValue={servicios}
+          onValueChange={(itemValue) => setservicios(itemValue)}
           style={styles.picker}
         >
-          <Picker.Item label="Servicios" value="" enabled={false} />
-          <Picker.Item label="Consulta general" value="consulta" />
-          <Picker.Item label="Vacunación" value="vacunacion" />
-          <Picker.Item label="Desparasitación" value="desparasitacion" />
-          <Picker.Item label="Radiología" value="radiologia" />
+          {servicio.map((serv: any) => (
+            <Picker.Item
+              key={serv.nombre}
+              label={serv.nombre}
+              value={serv.nombre}
+            />
+          ))}
         </Picker>
       </View>
 
@@ -95,7 +116,6 @@ export default function RegistroVeteri() {
   );
 }
 
-// Estilos
 const styles = StyleSheet.create({
   container: {
     flexGrow: 1,
@@ -109,20 +129,21 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     color: "#0000",
     marginBottom: 20,
+    marginTop: 20,
   },
   input: {
     borderWidth: 1,
     borderColor: "#4CAF50",
     borderRadius: 8,
     padding: 12,
-    width: "100%",
+    width: "90%",
     marginBottom: 12,
   },
   pickerContainer: {
     borderWidth: 1,
     borderColor: "#4CAF50",
     borderRadius: 8,
-    width: "100%",
+    width: "90%",
     marginBottom: 12,
   },
   picker: {
