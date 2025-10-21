@@ -13,7 +13,7 @@ export default function RegistroVeteri() {
   const getEspecializaciones = async () => {
     try {
       const response = await axios.get(
-        "http://10.121.63.130:3000/api/especializaciones"
+        "http://192.168.101.72:3000/api/especializaciones"
       );
         setEspecializaciones(response.data);
     } catch (error) {
@@ -28,7 +28,7 @@ export default function RegistroVeteri() {
   const getservicio = async () => {
     try {
       const response = await axios.get(
-        "http://10.121.63.130:3000/api/servicio"
+        "http://192.168.101.72:3000/api/servicio"
       );
         setservicio(response.data);
     } catch (error) {
