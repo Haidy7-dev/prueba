@@ -1,3 +1,4 @@
+import MenuVet from "@/components/MenuVet";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import React, { useState } from "react";
@@ -113,6 +114,8 @@ export default function Agenda() {
         keyExtractor={(item) => item.id}
         renderItem={renderCita}
       />
+      <MenuVet />
+
     </View>
   );
 }

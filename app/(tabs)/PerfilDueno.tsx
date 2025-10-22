@@ -1,63 +1,86 @@
 import { Feather } from "@expo/vector-icons";
-import * as ImagePicker from "expo-image-picker"; // ← Permite elegir fotos desde la galería
+import * as ImagePicker from "expo-image-picker";
 import React, { useState } from "react";
-import {
-  Alert,
-  Image,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
-} from "react-native";
+import {Alert,Image,ScrollView,StyleSheet,Text,TextInput,TouchableOpacity,View,} from "react-native";
 import MenuDueno from "../../components/MenuDueno";
+import BotonGeneral from "@/components/BotonGeneral";
+import axios from "axios";
 
 export default function PerfilDueno() {
-  // Estado del perfil del usuario
+  // Estado del perfil
   const [perfil, setPerfil] = useState({
     nombre: "",
     identificacion: "",
     correo: "",
     direccion: "",
     telefono: "",
+    numMascotas: "",
   });
+
+  // Función para guardar los datos del perfil en el backend
+const guardarPerfil = async () => {
+  try {
+    // Objeto con la información del perfil
+    const datosPerfil = {
+      nombre: perfil.nombre,
+      identificacion: perfil.identificacion,
+      correo: perfil.correo,
+      direccion: perfil.direccion,
+      telefono: perfil.telefono,
+      //numero_mascotas: perfil.numeroMascotas,
+    };
+
+    //IP Salomé casa
+        // "http://--------:3000/api/usuario"
+    //IP Salomé datos
+        // "http://10.121.63.130:3000/api/usuario"
+
+    //IP Haidy casa
+        //const respuesta = await axios.post("http://192.168.1.16:3000/api/usuario", datosPerfil);
+    //IP Haidy datos
+    const respuesta = await axios.post("http://10.164.93.119:3000/api/usuario", datosPerfil);
+    
+
+    // Si llega respuesta exitosa
+    Alert.alert("Éxito", "El perfil se actualizó correctamente");
+    console.log("Respuesta del servidor:", respuesta.data);
+  } catch (error) {
+    console.error("Error al guardar el perfil:", error);
+    Alert.alert("Error", "No se pudo guardar la información del perfil");
+  }
+};
 
   // Estado para la imagen del perfil
   const [fotoPerfil, setFotoPerfil] = useState<string | null>(null);
 
-  // 📸 Función para abrir la galería y seleccionar una imagen
+  // Seleccionar imagen
   const seleccionarImagen = async () => {
-    // Pedir permiso para acceder a la galería
     const permiso = await ImagePicker.requestMediaLibraryPermissionsAsync();
-
     if (!permiso.granted) {
       Alert.alert("Permiso denegado", "Debes permitir el acceso a tus fotos.");
       return;
     }
 
-    // Abrir la galería
     const resultado = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      allowsEditing: true, // permite recortar
-      aspect: [1, 1], // formato cuadrado
+      allowsEditing: true,
+      aspect: [1, 1],
       quality: 0.8,
     });
 
     if (!resultado.canceled) {
-      // Actualiza la imagen del perfil con la seleccionada
       setFotoPerfil(resultado.assets[0].uri);
     }
   };
 
-  // Actualizar campos del formulario
+  // Cambiar valores del formulario
   const handleChange = (field: string, value: string) => {
     setPerfil({ ...perfil, [field]: value });
   };
 
   return (
     <View style={styles.container}>
-      {/* --- ENCABEZADO SUPERIOR --- */}
+      {/* --- ENCABEZADO --- */}
       <View style={styles.header}>
         <Image
           source={require("../../assets/images/navegacion/Pata.png")}
@@ -81,59 +104,80 @@ export default function PerfilDueno() {
           <Image
             source={
               fotoPerfil
-                ? { uri: fotoPerfil } // Si el usuario seleccionó una imagen, la muestra
-                : require("../../assets/images/navegacion/sinfoto.png") // Si no, muestra la por defecto
+                ? { uri: fotoPerfil }
+                : require("../../assets/images/navegacion/foto.png")
             }
             style={styles.profileImage}
             resizeMode="cover"
           />
 
-          {/* ICONO DE EDICIÓN (CÁMARA) */}
+          {/* Icono de edición */}
           <TouchableOpacity style={styles.editIconContainer} onPress={seleccionarImagen}>
-            <Feather name="edit-3" size={18} color="#000000" />
+            <Feather name="edit-3" size={18} color="#000" />
           </TouchableOpacity>
         </View>
 
-        {/* TÍTULO */}
+        {/* Título */}
         <Text style={styles.title}>Editar perfil</Text>
 
-        {/* CAMPOS DEL FORMULARIO */}
-        <TextInput
-          style={styles.input}
-          placeholder="Nombre completo"
-          value={perfil.nombre}
-          onChangeText={(text) => handleChange("nombre", text)}
-        />
-        <TextInput
-          style={styles.input}
-          placeholder="Identificación"
-          value={perfil.identificacion}
-          onChangeText={(text) => handleChange("identificacion", text)}
-        />
-        <TextInput
-          style={styles.input}
-          placeholder="Correo electrónico"
-          keyboardType="email-address"
-          value={perfil.correo}
-          onChangeText={(text) => handleChange("correo", text)}
-        />
-        <TextInput
-          style={styles.input}
-          placeholder="Dirección de residencia"
-          value={perfil.direccion}
-          onChangeText={(text) => handleChange("direccion", text)}
-        />
-        <TextInput
-          style={styles.input}
-          placeholder="Teléfono"
-          keyboardType="phone-pad"
-          value={perfil.telefono}
-          onChangeText={(text) => handleChange("telefono", text)}
-        />
-      </ScrollView>
+        {/* FORMULARIO */}
+        <View style={styles.formContainer}>
+          <Text style={styles.label}>Nombre completo</Text>
+          <TextInput
+            style={styles.input}
+            value={perfil.nombre}
+            onChangeText={(text) => handleChange("nombre", text)}
+          />
 
+          <Text style={styles.label}>Identificación</Text>
+          <TextInput
+            style={styles.input}
+            value={perfil.identificacion}
+            onChangeText={(text) => handleChange("identificacion", text)}
+          />
+
+          <Text style={styles.label}>Correo electrónico</Text>
+          <TextInput
+            style={styles.input}
+            keyboardType="email-address"
+            value={perfil.correo}
+            onChangeText={(text) => handleChange("correo", text)}
+          />
+
+          <Text style={styles.label}>Dirección de residencia</Text>
+          <TextInput
+            style={styles.input}
+            value={perfil.direccion}
+            onChangeText={(text) => handleChange("direccion", text)}
+          />
+
+          <Text style={styles.label}>Teléfono</Text>
+          <TextInput
+            style={styles.input}
+            keyboardType="phone-pad"
+            value={perfil.telefono}
+            onChangeText={(text) => handleChange("telefono", text)}
+          />
+
+          <Text style={styles.label}>Número de mascotas</Text>
+          <TextInput
+            style={styles.input}
+            keyboardType="numeric"
+            value={perfil.numMascotas}
+            onChangeText={(text) => handleChange("numMascotas", text)}
+          />
+        </View>
+
+        <BotonGeneral
+          title="Guardar"
+          onPress={guardarPerfil}
+        />
+
+      </ScrollView>
+      
       {/* --- MENÚ INFERIOR --- */}
       <MenuDueno />
+
     </View>
   );
 }
@@ -149,7 +193,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    paddingHorizontal: 20,
+    paddingHorizontal: 30,
     paddingTop: 10,
     paddingBottom: 5,
   },
@@ -202,7 +246,16 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
 
-  // --- CAMPOS DE FORMULARIO ---
+  // --- FORMULARIO ---
+  formContainer: {
+    width: "100%",
+  },
+  label: {
+    color: "#333",
+    fontSize: 15,
+    marginBottom: 4,
+    fontWeight: "600",
+  },
   input: {
     width: "100%",
     borderWidth: 1.5,
@@ -210,7 +263,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     paddingHorizontal: 10,
     paddingVertical: 8,
-    marginBottom: 12,
+    marginBottom: 14,
     fontSize: 15,
     color: "#333",
   },

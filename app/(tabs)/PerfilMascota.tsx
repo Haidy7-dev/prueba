@@ -1,3 +1,5 @@
+import MenuDueno from "@/components/MenuDueno";
+import MenuVet from "@/components/MenuVet";
 import { Feather, MaterialCommunityIcons } from "@expo/vector-icons";
 import React from "react";
 import { ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
@@ -38,6 +40,10 @@ export default function EditarPerfilMascota() {
         <TouchableOpacity>
           <Feather name="trash-2" size={50} color="black" />
         </TouchableOpacity>
+
+
+      <MenuDueno />
+
       </View>
     </ScrollView>
   );

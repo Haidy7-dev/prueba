@@ -1,44 +1,108 @@
+import { useRouter } from "expo-router";
 import BotonGeneral from "@/components/BotonGeneral";
-import { Ionicons } from "@expo/vector-icons";
+import MenuVet from "@/components/MenuVet";
+import { Feather } from "@expo/vector-icons";
 import { Picker } from "@react-native-picker/picker";
+import * as ImagePicker from "expo-image-picker";
 import React, { useState } from "react";
-import { ScrollView, StyleSheet, Text, TextInput, View, } from "react-native";
+import { ScrollView, StyleSheet, Text, TextInput, View, Image, TouchableOpacity, Alert,} from "react-native";
 
 export default function PerfilVeterinario() {
+  const router = useRouter();
+
   const [nombre, setNombre] = useState("");
   const [identificacion, setIdentificacion] = useState("");
   const [correo, setCorreo] = useState("");
   const [telefono, setTelefono] = useState("");
   const [especializacion, setEspecializacion] = useState("");
   const [informacion, setInformacion] = useState("");
+  const [fotoPerfil, setFotoPerfil] = useState<string | null>(null);
 
+  // --- GUARDAR INFORMACIÓN ---
   const manejarGuardar = () => {
-    console.log("Datos guardados");
+    console.log("Datos guardados correctamente:");
+    console.log({
+      nombre,
+      identificacion,
+      correo,
+      telefono,
+      especializacion,
+      informacion,
+      fotoPerfil,
+    });
+    Alert.alert("Éxito", "La información ha sido guardada correctamente.");
+  };
+
+  // --- NAVEGAR A HORARIOS ---
+  const irAHorarios = () => {
+    router.push("/Horariosvet");
+  };
+
+  // --- SELECCIONAR IMAGEN DE PERFIL ---
+  const seleccionarImagen = async () => {
+    const permiso = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (!permiso.granted) {
+      Alert.alert("Permiso denegado", "Debes permitir el acceso a tus fotos.");
+      return;
+    }
+
+    const resultado = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      aspect: [1, 1],
+      quality: 0.8,
+    });
+
+    if (!resultado.canceled) {
+      setFotoPerfil(resultado.assets[0].uri);
+    }
   };
 
   return (
     <View style={styles.container}>
-      {/* HEADER */}
+      {/* --- ENCABEZADO --- */}
       <View style={styles.header}>
-        <Ionicons name="paw-outline" size={30} color="green" />
-        <Ionicons name="log-out-outline" size={30} color="green" />
+        <Image
+          source={require("../../assets/images/navegacion/Pata.png")}
+          style={styles.logo}
+          resizeMode="contain"
+        />
+
+        <TouchableOpacity>
+          <Image
+            source={require("../../assets/images/navegacion/iconosalir.png")}
+            style={styles.iconSalir}
+            resizeMode="contain"
+          />
+        </TouchableOpacity>
       </View>
 
-      <ScrollView contentContainerStyle={{ paddingBottom: 40 }}>
-        {/* Foto de perfil vacía */}
-        <View style={styles.avatarContainer}>
-          <View style={styles.emptyAvatar}>
-            <Ionicons name="person-outline" size={50} color="green" />
-          </View>
-          <View style={styles.editIcon}>
-            <Ionicons name="pencil" size={16} color="#fff" />
-          </View>
+      {/* --- CONTENIDO PRINCIPAL --- */}
+      <ScrollView contentContainerStyle={styles.content}>
+        {/* IMAGEN DE PERFIL */}
+        <View style={styles.profileImageContainer}>
+          <Image
+            source={
+              fotoPerfil
+                ? { uri: fotoPerfil }
+                : require("../../assets/images/navegacion/foto.png")
+            }
+            style={styles.profileImage}
+            resizeMode="cover"
+          />
+          {/* Icono de edición */}
+          <TouchableOpacity
+            style={styles.editIconContainer}
+            onPress={seleccionarImagen}
+          >
+            <Feather name="edit-3" size={18} color="#000" />
+          </TouchableOpacity>
         </View>
 
-        {/* Título */}
+        {/* TÍTULO */}
         <Text style={styles.title}>Editar perfil</Text>
 
-        {/* Campos de texto */}
+        {/* CAMPOS DE TEXTO */}
         <TextInput
           style={styles.input}
           placeholder="Nombre completo"
@@ -64,7 +128,7 @@ export default function PerfilVeterinario() {
           onChangeText={setTelefono}
         />
 
-        {/* Especialización */}
+        {/* PICKER DE ESPECIALIZACIÓN */}
         <View style={styles.pickerContainer}>
           <Picker
             selectedValue={especializacion}
@@ -78,7 +142,7 @@ export default function PerfilVeterinario() {
           </Picker>
         </View>
 
-        {/* Información */}
+        {/* INFORMACIÓN */}
         <TextInput
           style={[styles.input, styles.textArea]}
           placeholder="Mi información..."
@@ -87,21 +151,26 @@ export default function PerfilVeterinario() {
           multiline
         />
 
-        {/* Texto guía */}
-        <Text style={styles.helperText}>
-          Haz clic en el botón para elegir u organizar tus horarios de atención.
-        </Text>
+        {/* BOTONES */}
+        <View style={styles.botonesContainer}>
+          <BotonGeneral title="Guardar" onPress={manejarGuardar} />
 
-        {/* Botón reutilizable */}
-        <BotonGeneral
-          title="Horarios"
-          onPress={manejarGuardar}
-        />
+          {/* TEXTO ENTRE BOTONES */}
+          <Text style={styles.infoText}>
+            !Ya casi terminas! Guarda tu info y organiza tus horarios.
+          </Text>
+
+          <BotonGeneral title="Ir a horarios" onPress={irAHorarios} />
+        </View>
       </ScrollView>
+
+      {/* --- MENÚ INFERIOR --- */}
+      <MenuVet />
     </View>
   );
 }
 
+// --- ESTILOS ---
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -111,34 +180,51 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: "row",
     justifyContent: "space-between",
+    alignItems: "center",
     paddingHorizontal: 20,
     marginBottom: 10,
   },
-  avatarContainer: {
-    alignItems: "center",
-    marginVertical: 10,
+  logo: {
+    width: 40,
+    height: 40,
   },
-  emptyAvatar: {
-    width: 100,
-    height: 100,
-    borderRadius: 50,
-    borderWidth: 2,
-    borderColor: "green",
+  iconSalir: {
+    width: 30,
+    height: 30,
+  },
+  content: {
+    alignItems: "center",
+    paddingVertical: 20,
+    paddingHorizontal: 25,
+    paddingBottom: 100,
+  },
+  profileImageContainer: {
+    position: "relative",
+    alignItems: "center",
     justifyContent: "center",
-    alignItems: "center",
+    marginBottom: 15,
   },
-  editIcon: {
+  profileImage: {
+    width: 130,
+    height: 130,
+    borderRadius: 70,
+    backgroundColor: "#E0E0E0",
+  },
+  editIconContainer: {
     position: "absolute",
-    bottom: 0,
-    right: 135,
-    backgroundColor: "green",
-    borderRadius: 12,
-    padding: 4,
+    bottom: 8,
+    right: 8,
+    backgroundColor: "#fff",
+    borderRadius: 20,
+    padding: 6,
+    borderWidth: 1,
+    borderColor: "#000000",
   },
   title: {
     fontSize: 18,
     fontWeight: "bold",
     textAlign: "left",
+    alignSelf: "flex-start",
     marginLeft: 25,
     marginBottom: 10,
   },
@@ -147,7 +233,7 @@ const styles = StyleSheet.create({
     borderColor: "green",
     borderRadius: 8,
     padding: 10,
-    marginHorizontal: 25,
+    width: "100%",
     marginBottom: 12,
     fontSize: 14,
   },
@@ -155,21 +241,32 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: "green",
     borderRadius: 8,
-    marginHorizontal: 25,
+    width: "100%",
     marginBottom: 12,
   },
   textArea: {
     height: 80,
     textAlignVertical: "top",
   },
-  helperText: {
+  botonesContainer: {
+    width: "100%",
+    alignItems: "center",
+    marginTop: 10,
+  },
+  infoText: {
     textAlign: "center",
+    color: "#444",
     fontSize: 13,
-    color: "#555",
-    marginTop: 5,
-    marginBottom: 10,
+    marginVertical: 12,
     marginHorizontal: 20,
+    fontStyle: "italic",
   },
 });
+
+
+
+
+
+
 
 

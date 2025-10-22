@@ -20,8 +20,8 @@ export default function MenuDueno({ active }: MenuDuenoProps) {
   const items = [
     { name: "Inicio", icon: icons.casa, route: "/inicio" },
     { name: "Agenda", icon: icons.calendario, route: "/agenda" },
-    { name: "Mascotas", icon: icons.mascotas, route: "/mascotas" },
-    { name: "Perfil", icon: icons.persona, route: "/perfil" },
+    { name: "Mascotas", icon: icons.mascotas, route: "/PerfilMascota" },
+    { name: "Perfil", icon: icons.persona, route: "/PerfilDueno" },
   ];
 
   return (
@@ -29,7 +29,7 @@ export default function MenuDueno({ active }: MenuDuenoProps) {
       {items.map((item) => (
         <TouchableOpacity
           key={item.name}
-          onPress={() => router.push(item.route)}
+          onPress={() => router.push(item.router)}
           style={[
             styles.item,
             active === item.name && styles.activeItem, // resalta el activo
