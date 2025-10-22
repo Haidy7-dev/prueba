@@ -1,4 +1,5 @@
 import BotonGeneral from "@/components/BotonGeneral";
+import Encabezado from "@/components/Encabezado";
 import MenuDueno from "@/components/MenuDueno";
 import { FontAwesome } from "@expo/vector-icons";
 import React, { useState } from "react";
@@ -18,18 +19,7 @@ export default function CalificarScreen() {
       {/* Contenido scrollable para evitar cortes en pantallas pequeñas */}
       <ScrollView contentContainerStyle={styles.scrollContainer}>
         {/* Barra superior */}
-        <View style={styles.header}>
-          <Image
-            source={require("../../assets/images/navegacion/Pata.png")}
-            style={styles.logo}
-            resizeMode="contain"
-          />
-          <Image
-            source={require("../../assets/images/navegacion/campana.png")}
-            style={styles.campana}
-            resizeMode="contain"
-          />
-        </View>
+        <Encabezado />
 
         {/* Título */}
         <Text style={styles.title}>Califica al veterinario</Text>
@@ -95,16 +85,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     marginTop: 40,
   },
-  logo: {
-    width: 40,
-    height: 40,
-  },
-  campana: {
-    width: 30,
-    height: 30,
-  },
   title: {
-    fontSize: 18,
+    fontSize: 24,
     fontWeight: "bold",
     color: "#000",
     marginTop: 25,

@@ -13,11 +13,20 @@ export default function RegistroVeteri() {
   const getEspecializaciones = async () => {
     try {
       const response = await axios.get(
-        "http://10.121.63.130:3000/api/especializaciones"
+        //IP Salomé casa
+        // "http://--------:3000/api/especializaciones"
+        //IP Salomé datos
+        // "http://10.121.63.130:3000/api/especializaciones"
+
+        //IP Haidy casa
+        //"http://192.168.1.16:3000/api/especializaciones"
+        //IP Haidy datos
+        "http://10.164.93.119:3000/api/especializaciones"
+
       );
         setEspecializaciones(response.data);
     } catch (error) {
-      console.log("Error fetching data:", error);
+      console.log("Error al obtener los datos de las especializaciones:", error);
     }
   };
 
@@ -28,7 +37,16 @@ export default function RegistroVeteri() {
   const getservicio = async () => {
     try {
       const response = await axios.get(
-        "http://10.121.63.130:3000/api/servicio"
+        //IP Salomé casa
+        // "http://--------:3000/api/servicio"
+        //IP Salomé datos
+        // "http://10.121.63.130:3000/api/servicio"
+
+        //IP Haidy casa
+        //"http://192.168.1.16:3000/api/servicio"
+        //IP Haidy datos
+        "http://10.164.93.119:3000/api/servicio"
+
       );
         setservicio(response.data);
     } catch (error) {
@@ -50,21 +68,13 @@ export default function RegistroVeteri() {
     <ScrollView contentContainerStyle={styles.container}>
       <Text style={styles.title}>Registro</Text>
 
-      <TextInput placeholder="Identificación" style={styles.input} />
+      <TextInput placeholder="Identificación" style={styles.input} keyboardType="numeric"/>
       <TextInput placeholder="Primer nombre" style={styles.input} />
       <TextInput placeholder="Segundo nombre" style={styles.input} />
       <TextInput placeholder="Primer apellido" style={styles.input} />
       <TextInput placeholder="Segundo apellido" style={styles.input} />
-      <TextInput
-        placeholder="Correo electrónico"
-        style={styles.input}
-        keyboardType="email-address"
-      />
-      <TextInput
-        placeholder="Teléfono"
-        style={styles.input}
-        keyboardType="phone-pad"
-      />
+      <TextInput placeholder="Correo electrónico" style={styles.input} keyboardType="email-address"/>
+      <TextInput placeholder="Teléfono" style={styles.input} keyboardType="phone-pad"/>
       <TextInput placeholder="Dirección de la clínica" style={styles.input} />
 
       {/* Picker de Especialización */}
@@ -110,7 +120,7 @@ export default function RegistroVeteri() {
       {/* Botón Guardar */}
       <BotonGeneral
         title="Guardar"
-        onPress={() => router.push("./Iniciarsesion1")}
+        onPress={() => router.push("./Perfilvet")}
       />
     </ScrollView>
   );
@@ -118,7 +128,7 @@ export default function RegistroVeteri() {
 
 const styles = StyleSheet.create({
   container: {
-    flexGrow: 1,
+    flexGrow: 1, // Asegura que el ScrollView ocupe todo el espacio disponible
     justifyContent: "center",
     alignItems: "center",
     backgroundColor: "#fff",
@@ -138,6 +148,7 @@ const styles = StyleSheet.create({
     padding: 12,
     width: "90%",
     marginBottom: 12,
+    minHeight: 50,
   },
   pickerContainer: {
     borderWidth: 1,
