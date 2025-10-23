@@ -1,6 +1,6 @@
 import { useRouter, usePathname } from "expo-router";
 import React from "react";
-import { Image, StyleSheet, TouchableOpacity, View, Text } from "react-native";
+import { Image, StyleSheet, TouchableOpacity, View } from "react-native";
 
 const icons = {
   casa: require("../assets/images/navegacion/casa.png"),
@@ -34,7 +34,6 @@ export default function MenuVet() {
               style={[styles.icon, isActive && styles.activeIcon]}
               resizeMode="contain"
             />
-            
           </TouchableOpacity>
         );
       })}
@@ -66,20 +65,19 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     padding: 8,
     borderRadius: 15,
-    width: 50, // para mantener proporción
+    width: 50,
   },
   icon: {
     width: 28,
     height: 28,
-    marginBottom: 3,
-  },
-  label: {
-    fontSize: 12,
-    color: "#fff",
-    fontWeight: "500",
+    tintColor: "#FFFFFF", // blanco por defecto
   },
   activeItem: {
     backgroundColor: "#3D7447",
   },
+  activeIcon: {
+    tintColor: "#FFD166", // color dorado del ícono activo
+  },
 });
+
 

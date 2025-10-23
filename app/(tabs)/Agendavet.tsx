@@ -1,28 +1,33 @@
 import MenuVet from "@/components/MenuVet";
 import { Ionicons } from "@expo/vector-icons";
-import { useRouter } from "expo-router";
 import React, { useState } from "react";
-import { FlatList, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import {
+  FlatList,
+  Image,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
 
 export default function Agenda() {
-  const router = useRouter();
-  const [selectedTab, setSelectedTab] = useState<"pasadas" | "futuras">("futuras");
+  const [selectedTab, setSelectedTab] = useState<"pasadas" | "futuras">(
+    "futuras"
+  );
 
   // Datos de ejemplo
   const citasPasadas = [
     {
       id: "1",
       nombre: "Lucca",
-      fecha: "01/09/2025",
-      hora: "8:00 AM - 9:00 AM",
-      estado: "Culminado",
+      fecha: "10/07/2025",
+      hora: "8:00 am - 9:00 am",
     },
     {
       id: "2",
       nombre: "Lucca",
-      fecha: "05/09/2025",
-      hora: "9:00 AM - 10:00 AM",
-      estado: "No asistió",
+      fecha: "09/07/2025",
+      hora: "8:00 am - 9:00 am",
     },
   ];
 
@@ -30,52 +35,53 @@ export default function Agenda() {
     {
       id: "3",
       nombre: "Lucca",
-      fecha: "10/09/2025",
-      hora: "10:00 AM - 11:00 AM",
-      estado: "Corte general",
+      fecha: "10/10/2025",
+      hora: "8:00 am - 9:00 am",
     },
     {
       id: "4",
       nombre: "Lucca",
-      fecha: "15/09/2025",
-      hora: "11:00 AM - 12:00 PM",
-      estado: "Vacunación",
+      fecha: "12/10/2025",
+      hora: "8:00 am - 9:00 am",
+    },
+    {
+      id: "5",
+      nombre: "Lucca",
+      fecha: "14/10/2025",
+      hora: "8:00 am - 9:00 am",
     },
   ];
 
   const renderCita = ({ item }: any) => (
     <View style={styles.card}>
-      {/* Icono de mascota en lugar de imagen */}
-      <Ionicons name="paw-outline" size={40} color="#4CAF50" style={{ marginRight: 12 }} />
+      {/* Imagen de la mascota */}
+      <Image
+        source={require("../../assets/images/navegacion/foto.png")}
+        style={styles.avatar}
+      />
 
-      {/* Información de la cita */}
-      <View style={{ flex: 1 }}>
+      {/* Contenido de la tarjeta */}
+      <View style={styles.cardInfo}>
         <Text style={styles.nombre}>{item.nombre}</Text>
 
         <View style={styles.row}>
-          <Ionicons name="time-outline" size={16} color="gray" />
+          <Ionicons name="time-outline" size={14} color="gray" />
           <Text style={styles.texto}>{item.hora}</Text>
         </View>
 
         <View style={styles.row}>
-          <Ionicons name="calendar-outline" size={16} color="gray" />
+          <Ionicons name="calendar-outline" size={14} color="gray" />
           <Text style={styles.texto}>{item.fecha}</Text>
         </View>
 
-        {/* Estado de la cita */}
-        <View style={styles.estadoContainer}>
-          <Text
-            style={[
-              styles.estado,
-              item.estado === "Culminado"
-                ? styles.culminado
-                : item.estado === "No asistió"
-                ? styles.noAsistio
-                : styles.futuro,
-            ]}
-          >
-            {item.estado}
-          </Text>
+        {/* Botones de estado */}
+        <View style={styles.botonesRow}>
+          <TouchableOpacity style={[styles.boton, styles.culmino]}>
+            <Text style={styles.botonTexto}>Culminó</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={[styles.boton, styles.noAsistio]}>
+            <Text style={styles.botonTexto}>No asistió</Text>
+          </TouchableOpacity>
         </View>
       </View>
     </View>
@@ -86,22 +92,34 @@ export default function Agenda() {
       {/* Tabs */}
       <View style={styles.tabs}>
         <TouchableOpacity
-          style={[styles.tab, selectedTab === "pasadas" && styles.tabActive]}
+          style={[
+            styles.tab,
+            selectedTab === "pasadas" && styles.tabActiva,
+          ]}
           onPress={() => setSelectedTab("pasadas")}
         >
           <Text
-            style={[styles.tabText, selectedTab === "pasadas" && styles.tabTextActive]}
+            style={[
+              styles.tabTexto,
+              selectedTab === "pasadas" && styles.tabTextoActivo,
+            ]}
           >
             Citas pasadas
           </Text>
         </TouchableOpacity>
 
         <TouchableOpacity
-          style={[styles.tab, selectedTab === "futuras" && styles.tabActive]}
+          style={[
+            styles.tab,
+            selectedTab === "futuras" && styles.tabActiva,
+          ]}
           onPress={() => setSelectedTab("futuras")}
         >
           <Text
-            style={[styles.tabText, selectedTab === "futuras" && styles.tabTextActive]}
+            style={[
+              styles.tabTexto,
+              selectedTab === "futuras" && styles.tabTextoActivo,
+            ]}
           >
             Citas futuras
           </Text>
@@ -113,59 +131,115 @@ export default function Agenda() {
         data={selectedTab === "pasadas" ? citasPasadas : citasFuturas}
         keyExtractor={(item) => item.id}
         renderItem={renderCita}
+        contentContainerStyle={{ paddingBottom: 100 }}
       />
-      <MenuVet />
 
+      {/* Menú inferior */}
+      <View style={styles.menuContainer}>
+        <MenuVet />
+      </View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#fff", padding: 10 },
-
-  // Tabs
-  tabs: { flexDirection: "row", marginBottom: 10 },
-  tab: {
+  container: {
     flex: 1,
-    padding: 10,
-    alignItems: "center",
-    borderBottomWidth: 2,
+    backgroundColor: "#fff",
+    paddingHorizontal: 10,
+  },
+  // --- Tabs ---
+  tabs: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginTop: 10,
+    marginBottom: 15,
+    borderBottomWidth: 1,
     borderBottomColor: "#ccc",
   },
-  tabActive: { borderBottomColor: "#4CAF50" },
-  tabText: { fontWeight: "bold", color: "gray" },
-  tabTextActive: { color: "#4CAF50" },
+  tab: {
+    flex: 1,
+    alignItems: "center",
+    paddingVertical: 10,
+  },
+  tabActiva: {
+    borderBottomWidth: 3,
+    borderBottomColor: "#14841C",
+  },
+  tabTexto: {
+    color: "#888",
+    fontWeight: "bold",
+    fontSize: 14,
+  },
+  tabTextoActivo: {
+    color: "#14841C",
+  },
 
-  // Card
+  // --- Tarjetas ---
   card: {
     flexDirection: "row",
-    backgroundColor: "#f9f9f9",
-    padding: 12,
-    marginBottom: 10,
-    borderRadius: 12,
-    alignItems: "center",
+    backgroundColor: "#fff",
+    borderWidth: 1,
+    borderColor: "#ddd",
+    borderRadius: 15,
+    padding: 10,
+    marginBottom: 15,
     shadowColor: "#000",
-    shadowOpacity: 0.05,
-    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
     shadowRadius: 4,
-    elevation: 2,
+    shadowOffset: { width: 0, height: 2 },
+    elevation: 3,
   },
-  nombre: { fontSize: 16, fontWeight: "bold", marginBottom: 4 },
-  row: { flexDirection: "row", alignItems: "center", marginBottom: 2 },
-  texto: { marginLeft: 4, color: "gray", fontSize: 13 },
+  avatar: {
+    width: 60,
+    height: 60,
+    borderRadius: 40,
+    marginRight: 10,
+  },
+  cardInfo: {
+    flex: 1,
+  },
+  nombre: {
+    fontSize: 16,
+    fontWeight: "bold",
+    marginBottom: 5,
+  },
+  row: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 3,
+  },
+  texto: {
+    fontSize: 13,
+    color: "gray",
+    marginLeft: 4,
+  },
 
-  // Estado (chip)
-  estadoContainer: { marginTop: 6 },
-  estado: {
-    fontSize: 12,
-    paddingVertical: 4,
-    paddingHorizontal: 10,
-    borderRadius: 20,
-    overflow: "hidden",
-    alignSelf: "flex-start",
-    color: "#fff",
+  // --- Botones dentro de la tarjeta ---
+  botonesRow: {
+    flexDirection: "row",
+    marginTop: 6,
+    gap: 10,
   },
-  culminado: { backgroundColor: "green" },
-  noAsistio: { backgroundColor: "red" },
-  futuro: { backgroundColor: "#1E88E5" },
+  boton: {
+    paddingVertical: 5,
+    paddingHorizontal: 12,
+    borderRadius: 15,
+  },
+  botonTexto: {
+    color: "#fff",
+    fontSize: 12,
+    fontWeight: "600",
+  },
+  culmino: {
+    backgroundColor: "#14841C",
+  },
+  noAsistio: {
+    backgroundColor: "#555",
+  },
+
+  // --- Menú inferior ---
+  menuContainer: {
+    marginTop: 10,
+  },
 });

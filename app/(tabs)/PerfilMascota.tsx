@@ -1,83 +1,220 @@
 import MenuDueno from "@/components/MenuDueno";
-import MenuVet from "@/components/MenuVet";
-import { Feather, MaterialCommunityIcons } from "@expo/vector-icons";
-import React from "react";
-import { ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
+import BotonGeneral from "@/components/BotonGeneral";
+import { Feather } from "@expo/vector-icons";
+import * as ImagePicker from "expo-image-picker";
+import axios from "axios";
+import React, { useEffect, useState } from "react";
+import {Image,ScrollView,StyleSheet,Text,TextInput,TouchableOpacity,View,Alert,KeyboardAvoidingView,Platform,} from "react-native";
+import { Picker } from "@react-native-picker/picker";
 
 export default function EditarPerfilMascota() {
+  // Estados
+  const [fotoPerfil, setFotoPerfil] = useState<string | null>(null);
+  const [nombre, setNombre] = useState("");
+  const [peso, setPeso] = useState("");
+  const [sexo, setSexo] = useState("");
+  const [razaSeleccionada, setRazaSeleccionada] = useState(""); // ✅ valor seleccionado
+  const [razas, setRazas] = useState([]); // ✅ lista desde BD
+
+  // --- OBTENER RAZAS DESDE LA BASE DE DATOS ---
+  const getRazas = async () => {
+    try {
+      const response = await axios.get(
+        // "http://10.121.63.130:3000/api/razas"  // IP Salomé datos
+        "http://10.164.93.119:3000/api/razas" // IP Haidy datos
+      );
+      setRazas(response.data);
+    } catch (error) {
+      console.log("Error al obtener las razas:", error);
+    }
+  };
+
+  useEffect(() => {
+    getRazas();
+  }, []);
+
+  // --- SELECCIONAR IMAGEN DE PERFIL ---
+  const seleccionarImagen = async () => {
+    const permiso = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (!permiso.granted) {
+      Alert.alert("Permiso denegado", "Debes permitir el acceso a tus fotos.");
+      return;
+    }
+
+    const resultado = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      aspect: [1, 1],
+      quality: 0.8,
+    });
+
+    if (!resultado.canceled) {
+      setFotoPerfil(resultado.assets[0].uri);
+    }
+  };
+
+  // --- GUARDAR INFORMACIÓN ---
+  const manejarGuardar = () => {
+    console.log("Datos de la mascota guardados:");
+    console.log({ nombre, peso, sexo, razaSeleccionada, fotoPerfil });
+
+    Alert.alert("Éxito", "El perfil de tu mascota ha sido guardado correctamente.");
+  };
+
   return (
-    <ScrollView contentContainerStyle={styles.container}>
-      {/* Icono del perro en lugar de imagen */}
-      <View style={styles.avatarWrapper}>
-        <MaterialCommunityIcons name="dog" size={80} color="#4CAF50" />
-        <Feather name="edit-2" size={18} color="#000" style={styles.editIcon} />
+    <KeyboardAvoidingView
+      style={styles.keyboardContainer}
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
+    >
+      <View style={styles.mainContainer}>
+        <ScrollView contentContainerStyle={styles.scrollContainer}>
+          {/* --- FOTO DE PERFIL --- */}
+          <View style={styles.avatarWrapper}>
+            <Image
+              source={
+                fotoPerfil
+                  ? { uri: fotoPerfil }
+                  : require("../../assets/images/navegacion/foto.png")
+              }
+              style={styles.avatar}
+            />
+            <TouchableOpacity
+              style={styles.editIconContainer}
+              onPress={seleccionarImagen}
+            >
+              <Feather name="edit-3" size={18} color="#000" />
+            </TouchableOpacity>
+          </View>
+
+          {/* --- TÍTULO --- */}
+          <Text style={styles.titulo}>Editar perfil</Text>
+
+          {/* --- CAMPOS DE TEXTO --- */}
+          <Text style={styles.label}>Nombre</Text>
+          <TextInput
+            style={styles.input}
+            value={nombre}
+            onChangeText={setNombre}
+            placeholder="Nombre de la mascota"
+          />
+
+          <Text style={styles.label}>Peso</Text>
+          <TextInput
+            style={styles.input}
+            value={peso}
+            onChangeText={setPeso}
+            placeholder="Peso (kg)"
+            keyboardType="numeric"
+          />
+
+          {/* --- SELECT: SEXO --- */}
+          <Text style={styles.label}>Sexo</Text>
+          <View style={styles.pickerContainer}>
+            <Picker
+              selectedValue={sexo}
+              onValueChange={(itemValue) => setSexo(itemValue)}
+            >
+              <Picker.Item label="Seleccione una opción" value="" />
+              <Picker.Item label="Macho" value="macho" />
+              <Picker.Item label="Hembra" value="hembra" />
+            </Picker>
+          </View>
+
+          {/* --- SELECT: RAZA (desde la BD) --- */}
+          <Text style={styles.label}>Raza</Text>
+          <View style={styles.pickerContainer}>
+            <Picker
+              selectedValue={razaSeleccionada}
+              onValueChange={(itemValue) => setRazaSeleccionada(itemValue)}
+            >
+              <Picker.Item label="Seleccione una raza" value="" />
+              {razas.map((r: any) => (
+                <Picker.Item
+                  key={r.id}
+                  label={r.nombre}
+                  value={r.nombre}
+                />
+              ))}
+            </Picker>
+          </View>
+
+          {/* --- BOTÓN GUARDAR --- */}
+          <View style={styles.botonContainer}>
+            <BotonGeneral title="Guardar" onPress={manejarGuardar} />
+          </View>
+
+          {/* Enlace para ver otra mascota */}
+          <TouchableOpacity>
+            <Text style={styles.link}>Ver perfil de mi otra mascota</Text>
+          </TouchableOpacity>
+
+          {/* --- BOTONES INFERIORES --- */}
+          <View style={styles.iconRow}>
+            <TouchableOpacity style={styles.iconButton}>
+              <Feather name="plus-circle" size={45} color="black" />
+              <Text style={styles.iconText}>Agregar mascota</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.iconButton}>
+              <Feather name="trash-2" size={45} color="black" />
+              <Text style={styles.iconText}>Eliminar mascota</Text>
+            </TouchableOpacity>
+          </View>
+        </ScrollView>
+
+        {/* --- MENÚ FIJO CON ESPACIO --- */}
+        <View style={styles.menuContainer}>
+          <MenuDueno />
+        </View>
       </View>
-
-      <Text style={styles.titulo}>Editar perfil</Text>
-
-      <Text style={styles.label}>Nombre</Text>
-      <TextInput style={styles.input} />
-
-      <Text style={styles.label}>Peso</Text>
-      <TextInput style={styles.input} />
-
-      <Text style={styles.label}>Sexo</Text>
-      <TextInput style={styles.input} />
-
-      <Text style={styles.label}>Raza</Text>
-      <View style={styles.input} />
-
-      {/* Enlace */}
-      <TouchableOpacity>
-        <Text style={styles.link}>Ver perfil de mi otra mascota</Text>
-      </TouchableOpacity>
-
-      {/* Botones inferiores */}
-      <View style={styles.iconRow}>
-        <TouchableOpacity>
-          <Feather name="plus-circle" size={50} color="black" />
-        </TouchableOpacity>
-        <TouchableOpacity>
-          <Feather name="trash-2" size={50} color="black" />
-        </TouchableOpacity>
-
-
-      <MenuDueno />
-
-      </View>
-    </ScrollView>
+    </KeyboardAvoidingView>
   );
 }
 
+// --- ESTILOS ---
 const styles = StyleSheet.create({
-  container: {
+  keyboardContainer: {
+    flex: 1,
+    backgroundColor: "#fff",
+  },
+  mainContainer: {
+    flex: 1,
+    justifyContent: "space-between",
+    backgroundColor: "#fff",
+  },
+  scrollContainer: {
     alignItems: "center",
     paddingVertical: 30,
     backgroundColor: "#FFFFFF",
+    paddingBottom: 40,
   },
   avatarWrapper: {
-    width: 120,
-    height: 120,
-    borderRadius: 100,
-    backgroundColor: "#B3EAC9",
+    position: "relative",
     alignItems: "center",
     justifyContent: "center",
-    position: "relative",
+    marginBottom: 15,
   },
-  editIcon: {
+  avatar: {
+    width: 130,
+    height: 130,
+    borderRadius: 70,
+    backgroundColor: "#E0E0E0",
+  },
+  editIconContainer: {
     position: "absolute",
     bottom: 8,
     right: 8,
     backgroundColor: "#fff",
-    padding: 3,
-    borderRadius: 50,
+    borderRadius: 20,
+    padding: 6,
+    borderWidth: 1,
+    borderColor: "#000",
   },
   titulo: {
     fontSize: 20,
     fontWeight: "bold",
     alignSelf: "flex-start",
     marginLeft: "10%",
-    marginTop: 20,
+    marginTop: 10,
   },
   label: {
     alignSelf: "flex-start",
@@ -88,21 +225,53 @@ const styles = StyleSheet.create({
   input: {
     width: "80%",
     height: 40,
-    borderWidth: 2,
-    borderColor: "#4CAF50",
+    borderWidth: 1.5,
+    borderColor: "#14841C",
     borderRadius: 8,
     paddingHorizontal: 10,
     marginTop: 5,
   },
+  pickerContainer: {
+    width: "80%",
+    height: 45,
+    borderWidth: 1.5,
+    borderColor: "#14841C",
+    borderRadius: 8,
+    justifyContent: "center",
+    marginTop: 5,
+  },
+  botonContainer: {
+    width: "80%",
+    marginTop: 20,
+  },
   link: {
-    color: "#4CAF50",
+    color: "#14841C",
     marginTop: 20,
     textDecorationLine: "underline",
   },
   iconRow: {
     flexDirection: "row",
     justifyContent: "space-around",
-    width: "60%",
-    marginTop: 20,
+    width: "90%",
+    marginTop: 30,
+    marginBottom: 30,
+  },
+  iconButton: {
+    alignItems: "center",
+  },
+  iconText: {
+    marginTop: 5,
+    fontSize: 13,
+    color: "#000",
+    textAlign: "center",
+  },
+  menuContainer: {
+    marginTop: 10,
   },
 });
+
+
+
+
+
+

@@ -1,4 +1,4 @@
-import { useRouter } from "expo-router";
+import { usePathname, useRouter } from "expo-router";
 import React from "react";
 import { Image, StyleSheet, TouchableOpacity, View } from "react-native";
 
@@ -10,15 +10,12 @@ const icons = {
   persona: require("../assets/images/navegacion/persona.png"),
 };
 
-interface MenuDuenoProps {
-  active?: string; // nombre de la pantalla activa, ej: "Inicio", "Agenda"
-}
-
-export default function MenuDueno({ active }: MenuDuenoProps) {
+export default function MenuDueno() {
   const router = useRouter();
+  const pathname = usePathname(); // 📍 Detecta la pantalla actual
 
   const items = [
-    { name: "Inicio", icon: icons.casa, route: "/inicio" },
+    { name: "Inicio", icon: icons.casa, route: "/HomeDueno" },
     { name: "Agenda", icon: icons.calendario, route: "/agenda" },
     { name: "Mascotas", icon: icons.mascotas, route: "/PerfilMascota" },
     { name: "Perfil", icon: icons.persona, route: "/PerfilDueno" },
@@ -26,25 +23,23 @@ export default function MenuDueno({ active }: MenuDuenoProps) {
 
   return (
     <View style={styles.container}>
-      {items.map((item) => (
-        <TouchableOpacity
-          key={item.name}
-          onPress={() => router.push(item.router)}
-          style={[
-            styles.item,
-            active === item.name && styles.activeItem, // resalta el activo
-          ]}
-        >
-          <Image
-            source={item.icon}
-            style={[
-              styles.icon,
-              active === item.name && styles.activeIcon, // cambio de color si está activo
-            ]}
-            resizeMode="contain"
-          />
-        </TouchableOpacity>
-      ))}
+      {items.map((item) => {
+        const isActive = pathname === item.route;
+
+        return (
+          <TouchableOpacity
+            key={item.name}
+            onPress={() => router.push(item.route)}
+            style={[styles.item, isActive && styles.activeItem]}
+          >
+            <Image
+              source={item.icon}
+              style={[styles.icon, isActive && styles.activeIcon]}
+              resizeMode="contain"
+            />
+          </TouchableOpacity>
+        );
+      })}
     </View>
   );
 }
@@ -54,8 +49,8 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-around",
     alignItems: "center",
-    backgroundColor: "#2F5D38", // verde base
-    paddingVertical: 10,
+    backgroundColor: "#2F5D38",
+    paddingVertical: 12,
     borderTopLeftRadius: 25,
     borderTopRightRadius: 25,
     position: "absolute",
@@ -73,16 +68,17 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     padding: 8,
     borderRadius: 15,
+    width: 60,
   },
   icon: {
-    width: 28,
-    height: 28,
-    
+    width: 30,
+    height: 30,
+    tintColor: "#FFFFFF",
   },
   activeItem: {
     backgroundColor: "#3D7447",
   },
   activeIcon: {
-    tintColor: "#FFD700", // dorado para el ítem activo
+    tintColor: "#FFD166", // color resaltado
   },
 });

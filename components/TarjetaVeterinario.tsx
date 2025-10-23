@@ -1,43 +1,54 @@
-import React from "react";
-import { View, Text, Image, StyleSheet, TouchableOpacity } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
+import React from 'react';
+import { View, Text, Image, TouchableOpacity, StyleSheet } from 'react-native';
 
-type VeterinarioProps = {
+export interface Veterinario {
+  id_veterinario: string;
   nombre: string;
-  imagen: string;
-  calificacion: number;
-  resenas: number;
-  onPress?: () => void;
-};
+  foto: string;
+  promedio_calificaciones: float;
+  total_resenas: number;
+}
 
-export default function TarjetaVeterinario({
-  nombre,
-  imagen,
-  calificacion,
-  resenas,
-  onPress,
-}: VeterinarioProps) {
+interface Props {
+  veterinario: Veterinario;
+  onPress: () => void;
+}
+
+export default function TarjetaVeterinario({ veterinario, onPress }: Props) {
+  const renderEstrellas = (promedio: number) => {
+    const estrellas = [];
+    const promedioRedondeado = Math.round(promedio);
+    
+    for (let i = 1; i <= 5; i++) {
+      estrellas.push(
+        <Text key={i} style={styles.estrella}>
+          {i <= promedioRedondeado ? '⭐' : '☆'}
+        </Text>
+      );
+    }
+    return estrellas;
+  };
+
+  const promedio = parseFloat(veterinario.promedio_calificaciones);
+
   return (
     <View style={styles.card}>
-      <Image source={{ uri: imagen }} style={styles.image} />
-
+      <Image 
+        source={veterinario.foto ? { uri: veterinario.foto } : require('../assets/default-avatar.png')} 
+        style={styles.foto}
+      />
       <View style={styles.info}>
-        <Text style={styles.nombre}>{nombre}</Text>
-
-        <View style={styles.rating}>
-          {Array.from({ length: 5 }).map((_, i) => (
-            <Ionicons
-              key={i}
-              name={i < calificacion ? "star" : "star-outline"}
-              size={16}
-              color="#FFB800"
-            />
-          ))}
-          <Text style={styles.resenas}>({resenas} reseñas)</Text>
+        <Text style={styles.nombre} numberOfLines={1}>{veterinario.nombre}</Text>
+        <View style={styles.calificacionContainer}>
+          <View style={styles.estrellas}>
+            {renderEstrellas(promedio)}
+          </View>
+          <Text style={styles.resenas}>
+            ({veterinario.total_resenas} {veterinario.total_resenas === 1 ? 'reseña' : 'reseñas'})
+          </Text>
         </View>
-
         <TouchableOpacity style={styles.boton} onPress={onPress}>
-          <Text style={styles.textoBoton}>Ver más</Text>
+          <Text style={styles.botonTexto}>Ver más</Text>
         </TouchableOpacity>
       </View>
     </View>
@@ -46,49 +57,62 @@ export default function TarjetaVeterinario({
 
 const styles = StyleSheet.create({
   card: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "#fff",
-    borderRadius: 10,
-    marginBottom: 10,
-    padding: 10,
-    shadowColor: "#000",
+    backgroundColor: '#fff',
+    borderRadius: 12,
+    padding: 16,
+    marginVertical: 8,
+    flexDirection: 'row',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.1,
-    shadowOffset: { width: 0, height: 2 },
-    elevation: 3,
+    shadowRadius: 2,
+    elevation: 2,
   },
-  image: {
-    width: 60,
-    height: 60,
-    borderRadius: 10,
+  foto: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    marginRight: 16,
+    backgroundColor: '#f0f0f0',
   },
   info: {
-    marginLeft: 10,
     flex: 1,
+    justifyContent: 'center',
   },
   nombre: {
-    fontWeight: "bold",
-    color: "#333",
+    fontSize: 16,
+    fontWeight: 'bold',
+    marginBottom: 8,
+    color: '#333',
   },
-  rating: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginVertical: 4,
+  calificacionContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 8,
+    flexWrap: 'wrap',
+  },
+  estrellas: {
+    flexDirection: 'row',
+  },
+  estrella: {
+    fontSize: 16,
+    marginRight: 2,
   },
   resenas: {
     fontSize: 12,
-    color: "#777",
-    marginLeft: 4,
+    color: '#666',
+    marginLeft: 8,
   },
   boton: {
-    backgroundColor: "#14841C",
-    borderRadius: 6,
-    paddingVertical: 5,
-    paddingHorizontal: 12,
-    alignSelf: "flex-start",
+    backgroundColor: '#4CAF50',
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    borderRadius: 8,
+    alignSelf: 'flex-start',
   },
-  textoBoton: {
-    color: "#fff",
-    fontWeight: "600",
+  botonTexto: {
+    color: '#fff',
+    fontWeight: 'bold',
+    fontSize: 12,
   },
 });

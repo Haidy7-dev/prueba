@@ -4,12 +4,14 @@ import MenuVet from "@/components/MenuVet";
 import { Feather } from "@expo/vector-icons";
 import { Picker } from "@react-native-picker/picker";
 import * as ImagePicker from "expo-image-picker";
-import React, { useState } from "react";
-import { ScrollView, StyleSheet, Text, TextInput, View, Image, TouchableOpacity, Alert,} from "react-native";
+import axios from "axios";
+import React, { useState, useEffect } from "react";
+import {ScrollView,StyleSheet,Text,TextInput,View,Image,TouchableOpacity,Alert,} from "react-native";
 
 export default function PerfilVeterinario() {
   const router = useRouter();
 
+  // --- Estados de los datos del formulario ---
   const [nombre, setNombre] = useState("");
   const [identificacion, setIdentificacion] = useState("");
   const [correo, setCorreo] = useState("");
@@ -17,6 +19,26 @@ export default function PerfilVeterinario() {
   const [especializacion, setEspecializacion] = useState("");
   const [informacion, setInformacion] = useState("");
   const [fotoPerfil, setFotoPerfil] = useState<string | null>(null);
+
+  // --- Estado para las especializaciones desde la base de datos ---
+  const [especializaciones, setEspecializaciones] = useState([]);
+
+  // --- OBTENER DATOS DE LA BASE DE DATOS ---
+  const getEspecializaciones = async () => {
+    try {
+      const response = await axios.get(
+        // "http://10.121.63.130:3000/api/especializaciones"  // Salomé datos
+        "http://10.164.93.119:3000/api/especializaciones"  // Haidy datos
+      );
+      setEspecializaciones(response.data);
+    } catch (error) {
+      console.log("Error al obtener las especializaciones:", error);
+    }
+  };
+
+  useEffect(() => {
+    getEspecializaciones();
+  }, []);
 
   // --- GUARDAR INFORMACIÓN ---
   const manejarGuardar = () => {
@@ -128,17 +150,16 @@ export default function PerfilVeterinario() {
           onChangeText={setTelefono}
         />
 
-        {/* PICKER DE ESPECIALIZACIÓN */}
+        {/* PICKER DE ESPECIALIZACIÓN (desde la BD) */}
         <View style={styles.pickerContainer}>
           <Picker
             selectedValue={especializacion}
             onValueChange={(itemValue) => setEspecializacion(itemValue)}
           >
-            <Picker.Item label="Especialización" value="" />
-            <Picker.Item label="Cirugía" value="cirugia" />
-            <Picker.Item label="Medicina general" value="general" />
-            <Picker.Item label="Dermatología" value="dermatologia" />
-            <Picker.Item label="Odontología" value="odontologia" />
+            <Picker.Item label="Seleccione su especialización" value="" />
+            {especializaciones.map((esp: any) => (
+              <Picker.Item key={esp.id} label={esp.nombre} value={esp.nombre} />
+            ))}
           </Picker>
         </View>
 
@@ -154,10 +175,8 @@ export default function PerfilVeterinario() {
         {/* BOTONES */}
         <View style={styles.botonesContainer}>
           <BotonGeneral title="Guardar" onPress={manejarGuardar} />
-
-          {/* TEXTO ENTRE BOTONES */}
           <Text style={styles.infoText}>
-            !Ya casi terminas! Guarda tu info y organiza tus horarios.
+            ¡Ya casi terminas! Guarda tu info y organiza tus horarios.
           </Text>
 
           <BotonGeneral title="Ir a horarios" onPress={irAHorarios} />
@@ -262,6 +281,7 @@ const styles = StyleSheet.create({
     fontStyle: "italic",
   },
 });
+
 
 
 

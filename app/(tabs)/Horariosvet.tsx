@@ -1,10 +1,10 @@
-import React, { useState } from "react";
-import {View,Text,StyleSheet,Dimensions,TouchableOpacity,ScrollView,Button,} from "react-native";
-import moment from "moment";
-import "moment/locale/es";
-import { useRouter } from "expo-router";
 import BotonGeneral from "@/components/BotonGeneral";
 import MenuVet from "@/components/MenuVet";
+import { useRouter } from "expo-router";
+import moment from "moment";
+import "moment/locale/es";
+import React, { useState } from "react";
+import { Dimensions, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 
 moment.locale("es");
 
