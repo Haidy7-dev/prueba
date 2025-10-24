@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, Image, TouchableOpacity, StyleSheet } from 'react-native';
+import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 interface Oferta {
   id: number;
@@ -20,11 +20,17 @@ export default function TarjetaOferta({ oferta, onPress }: Props) {
   return (
     <View style={styles.card}>
       <Text style={styles.descuento}>{oferta.descuento}</Text>
-      <Text style={styles.descripcion}>{oferta.descripcion}</Text>
-      <Image source={oferta.imagen} style={styles.imagen} resizeMode="cover" />
-      <TouchableOpacity style={styles.boton} onPress={onPress}>
-        <Text style={styles.botonTexto}>Ver más</Text>
-      </TouchableOpacity>
+      <View style={{flexDirection: 'row', gap: 5 }}>
+        <View style={styles.izquierda}>
+          <Text style={styles.descripcion}>{oferta.descripcion}</Text>
+          <TouchableOpacity style={styles.boton} onPress={onPress}>
+            <Text style={styles.botonTexto}>Ver más</Text>
+          </TouchableOpacity>
+        </View>
+        <View style={styles.derecha}>
+          <Image source={oferta.imagen} style={styles.imagen} resizeMode="cover" />
+        </View>
+      </View>
     </View>
   );
 }
@@ -34,8 +40,10 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
     borderRadius: 12,
     padding: 16,
+    paddingRight: 0,
+    paddingBottom: 0,
     marginHorizontal: 8,
-    width: 250,
+    width: 270,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
@@ -47,6 +55,7 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     marginBottom: 8,
     color: '#333',
+    textAlign: 'center',
   },
   descripcion: {
     fontSize: 14,
@@ -55,9 +64,8 @@ const styles = StyleSheet.create({
   },
   imagen: {
     width: '100%',
-    height: 80,
+    height: 100,
     borderRadius: 8,
-    marginBottom: 12,
   },
   boton: {
     backgroundColor: '#4CAF50',
@@ -70,4 +78,11 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     fontSize: 14,
   },
+  izquierda: {
+    width: '49%',
+    paddingBottom: 10
+  },
+  derecha: {
+    width: '49%'
+  }
 });

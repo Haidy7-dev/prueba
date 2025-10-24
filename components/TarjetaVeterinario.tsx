@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, Image, TouchableOpacity, StyleSheet } from 'react-native';
+import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 export interface Veterinario {
   id_veterinario: string;
@@ -34,7 +34,7 @@ export default function TarjetaVeterinario({ veterinario, onPress }: Props) {
   return (
     <View style={styles.card}>
       <Image 
-        source={veterinario.foto ? { uri: veterinario.foto } : require('../assets/default-avatar.png')} 
+        source={veterinario.foto ? { uri: veterinario.foto } : require('../assets/images/navegacion/foto.png')} 
         style={styles.foto}
       />
       <View style={styles.info}>

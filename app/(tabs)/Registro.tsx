@@ -1,9 +1,9 @@
 import { Ionicons } from '@expo/vector-icons';
-import { TouchableOpacity } from 'react-native';
+import { Dimensions, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 
 import { useRouter } from "expo-router";
 import React, { useState } from "react";
-import { Dimensions, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
+
 import BotonGeneral from "../../components/BotonGeneral";
 
 const screenWidth = Dimensions.get('window').width;
@@ -58,7 +58,7 @@ export default function Registro() {
       
       <BotonGeneral
         title="Guardar"
-        onPress={() => router.push("/Iniciarsesion1")}
+        onPress={() => router.push("/HomeDueno")}
       />
     </ScrollView>
   );
