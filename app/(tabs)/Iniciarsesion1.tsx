@@ -1,13 +1,71 @@
 import Checkbox from "expo-checkbox";
 import { useRouter } from "expo-router";
 import React, { useState } from "react";
-import { Dimensions, Image, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
+import { Dimensions, Image, StyleSheet, Text, TextInput, TouchableOpacity, View, Alert } from "react-native";
+import axios from "axios";
 
 const { width } = Dimensions.get("window");
 
 const IniciarSesion1: React.FC = () => {
   const router = useRouter();
   const [rememberMe, setRememberMe] = useState(false);
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [cargando, setCargando] = useState(false);
+
+  const handleLogin = async () => {
+    if (!email || !password) {
+      Alert.alert("Campos incompletos", "Por favor ingresa tu correo y contraseña.");
+      return;
+    }
+
+    try {
+      setCargando(true);
+
+      // 🔹 Primero intenta iniciar sesión como veterinario
+      try {
+        const vetRes = await axios.post("http://192.168.101.73:3000/api/loginVeterinario", {
+          correo_electronico: email,
+          contrasena: password,
+        });
+
+        if (vetRes.data && vetRes.data.id) {
+          Alert.alert("Inicio exitoso", "Bienvenido veterinario y/o zootecnista 🩺");
+          router.push("./Iniciovet");
+          return;
+        }
+      } catch (error: any) {
+        // Si el error es "Veterinario no encontrado", continúa con el siguiente login
+        if (error.response && error.response.data?.message !== "Veterinario no encontrado") {
+          console.error("Error en login veterinario:", error.response?.data || error.message);
+          Alert.alert("Error", "Ocurrió un problema al verificar el veterinario.");
+          return;
+        }
+      }
+
+      // 🔹 Si no está en veterinarios, intenta como usuario dueño
+      try {
+        const duenoRes = await axios.post("http://192.168.101.73:3000/api/loginUsuario", {
+          correo_electronico: email,
+          contrasena: password,
+        });
+
+        if (duenoRes.data && duenoRes.data.id) {
+          Alert.alert("Inicio exitoso", "Bienvenido dueño 🐾");
+          router.push("./HomeDueno");
+          return;
+        } else {
+          Alert.alert("Error", "Correo o contraseña incorrectos.");
+        }
+      } catch (error: any) {
+        console.error("Error en login usuario:", error.response?.data || error.message);
+        Alert.alert("Error", "No se pudo conectar al servidor o usuario no encontrado.");
+      }
+
+    } finally {
+      setCargando(false);
+    }
+  };
 
   return (
     <View style={styles.container}>
@@ -18,24 +76,28 @@ const IniciarSesion1: React.FC = () => {
         resizeMode="contain"
       />
 
-      {/* Título del formulario */}
+      {/* Formulario */}
       <View style={styles.form}>
         <Text style={styles.label}>Correo electrónico</Text>
         <TextInput
-          placeholder="email@gmail.com"
+          placeholder="ana.gomez@example.com"
           style={styles.input}
           placeholderTextColor="#9e9e9e"
+          value={email}
+          onChangeText={setEmail}
         />
 
         <Text style={styles.label}>Contraseña</Text>
         <TextInput
-          placeholder="********"
+          placeholder="123456"
           secureTextEntry
           style={styles.input}
           placeholderTextColor="#9e9e9e"
+          value={password}
+          onChangeText={setPassword}
         />
 
-        {/* Recuérdame y Olvidaste contraseña */}
+        {/* Recuérdame */}
         <View style={styles.optionsRow}>
           <View style={styles.rememberMe}>
             <Checkbox
@@ -47,14 +109,18 @@ const IniciarSesion1: React.FC = () => {
           </View>
         </View>
 
-        {/* Botones */}
+        {/* Botón de inicio */}
         <TouchableOpacity
           style={styles.loginButton}
-          onPress={() => router.push("./index")}
+          onPress={handleLogin}
+          disabled={cargando}
         >
-          <Text style={styles.loginButtonText}>Iniciar sesión</Text>
+          <Text style={styles.loginButtonText}>
+            {cargando ? "Verificando..." : "Iniciar sesión"}
+          </Text>
         </TouchableOpacity>
 
+        {/* Botón de registro */}
         <TouchableOpacity
           style={styles.registerButton}
           onPress={() => router.push("./ElegirRol")}
@@ -84,7 +150,7 @@ const styles = StyleSheet.create({
   },
   logo: {
     marginTop: 50,
-    width: width * 0.6, // 60% del ancho de la pantalla
+    width: width * 0.6,
     height: 170,
   },
   form: {
@@ -152,3 +218,6 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
 });
+
+
+

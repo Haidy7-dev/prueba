@@ -13,15 +13,16 @@ export default function EditarPerfilMascota() {
   const [nombre, setNombre] = useState("");
   const [peso, setPeso] = useState("");
   const [sexo, setSexo] = useState("");
-  const [razaSeleccionada, setRazaSeleccionada] = useState(""); // ✅ valor seleccionado
-  const [razas, setRazas] = useState([]); // ✅ lista desde BD
+  const [razaSeleccionada, setRazaSeleccionada] = useState(""); 
+  const [razas, setRazas] = useState([]); 
 
   // --- OBTENER RAZAS DESDE LA BASE DE DATOS ---
   const getRazas = async () => {
     try {
       const response = await axios.get(
         // "http://10.121.63.130:3000/api/razas"  // IP Salomé datos
-        "http://10.164.93.119:3000/api/razas" // IP Haidy datos
+         "http://192.168.101.73:3000/api/razas"  // IP Salomé casa
+       // "http://10.164.93.119:3000/api/razas" // IP Haidy datos
       );
       setRazas(response.data);
     } catch (error) {

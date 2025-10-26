@@ -1,8 +1,9 @@
-import MenuVet from "@/components/MenuVet";
-import { Ionicons } from "@expo/vector-icons";
-import { useRouter } from "expo-router";
 import React from "react";
 import { FlatList, StyleSheet, Text, View } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
+import { useRouter } from "expo-router";
+import MenuVet from "@/components/MenuVet";
+import Encabezado from "@/components/Encabezado"; 
 
 interface Cita {
   id: string;
@@ -41,12 +42,10 @@ export default function CitasScreen() {
 
   return (
     <View style={styles.container}>
-      {/* Header */}
-      <View style={styles.header}>
-        <Ionicons name="paw-outline" size={30} color="green" />
-        <Ionicons name="notifications-outline" size={28} color="green" />
-      </View>
+      {/*  Encabezado reutilizable */}
+      <Encabezado />
 
+      {/* Título local de la pantalla (no reutilizable) */}
       <Text style={styles.titulo}>Mis citas para hoy</Text>
 
       {/* Lista de citas */}
@@ -55,7 +54,7 @@ export default function CitasScreen() {
         keyExtractor={(item) => item.id}
         renderItem={({ item }) => (
           <View style={styles.card}>
-            {/* Avatar vacío */}
+            {/* Avatar del paciente */}
             <View style={styles.avatarPlaceholder}>
               <Ionicons name="paw-outline" size={28} color="green" />
             </View>
@@ -77,9 +76,9 @@ export default function CitasScreen() {
           </View>
         )}
       />
-    <MenuVet />
 
-
+      {/* 🐾 Menú inferior */}
+      <MenuVet />
     </View>
   );
 }
@@ -89,18 +88,14 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "#fff",
     paddingHorizontal: 16,
-    paddingTop: 40,
-  },
-  header: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: 16,
+    paddingTop: 20,
   },
   titulo: {
-    fontSize: 18,
+    fontSize: 20,
     fontWeight: "bold",
-    marginBottom: 16,
+    marginVertical: 16,
+    textAlign: "center",
+    color: "#000",
   },
   card: {
     flexDirection: "row",
@@ -147,3 +142,4 @@ const styles = StyleSheet.create({
     color: "gray",
   },
 });
+

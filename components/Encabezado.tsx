@@ -2,15 +2,7 @@
 import { AntDesign } from "@expo/vector-icons"; // ícono X
 import { BlurView } from "expo-blur";
 import React, { useState } from "react";
-import {
-    Image,
-    Modal,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View,
-} from "react-native";
+import {Image,Modal, ScrollView, StyleSheet, Text, TouchableOpacity, View,} from "react-native";
 
 export default function Encabezado() {
   const [modalVisible, setModalVisible] = useState(false);
@@ -60,7 +52,7 @@ export default function Encabezado() {
                 onPress={() => setModalVisible(false)}
                 style={styles.closeTopBtn}
               >
-                <AntDesign name="close" size={22} color="#1E5B35" />
+                <AntDesign name="close" size={22} color="#000" />
               </TouchableOpacity>
             </View>
 
@@ -104,9 +96,10 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",// Separa los elementos: uno a la izquierda y otro a la derecha
     alignItems: "center",           // Centra verticalmente los elementos dentro de la fila
     paddingHorizontal: 18,          // Espaciado horizontal (márgenes internos en los lados)
-    paddingVertical: 30,            // Espaciado vertical (márgenes internos arriba y abajo)
+    paddingVertical: 10,            // Espaciado vertical (márgenes internos arriba y abajo)
+    paddingTop: 40,
     backgroundColor: "#FFFFFF",    
-    width: "100%",                  
+    width: "100%",                
   },
   logo: {
     width: 50,                     

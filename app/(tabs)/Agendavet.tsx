@@ -1,132 +1,114 @@
 import MenuVet from "@/components/MenuVet";
+import Encabezado from "@/components/Encabezado"; 
 import { Ionicons } from "@expo/vector-icons";
 import React, { useState } from "react";
-import {
-  FlatList,
-  Image,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
-} from "react-native";
+import {FlatList,Image,StyleSheet,Text,TouchableOpacity,View,} from "react-native";
 
 export default function Agenda() {
-  const [selectedTab, setSelectedTab] = useState<"pasadas" | "futuras">(
-    "futuras"
-  );
+  const [selectedTab, setSelectedTab] = useState<"pasadas" | "futuras">("futuras");
+  const [estadoCitas, setEstadoCitas] = useState<{ [key: string]: "culmino" | "noAsistio" | null }>({});
 
-  // Datos de ejemplo
+  const handleEstado = (id: string, estado: "culmino" | "noAsistio") => {
+    setEstadoCitas((prev) => ({
+      ...prev,
+      [id]: prev[id] === estado ? null : estado,
+    }));
+  };
+
   const citasPasadas = [
-    {
-      id: "1",
-      nombre: "Lucca",
-      fecha: "10/07/2025",
-      hora: "8:00 am - 9:00 am",
-    },
-    {
-      id: "2",
-      nombre: "Lucca",
-      fecha: "09/07/2025",
-      hora: "8:00 am - 9:00 am",
-    },
+    { id: "1", nombre: "Lucca", fecha: "10/07/2025", hora: "8:00 am - 9:00 am" },
+    { id: "2", nombre: "Lucca", fecha: "09/07/2025", hora: "8:00 am - 9:00 am" },
   ];
 
   const citasFuturas = [
-    {
-      id: "3",
-      nombre: "Lucca",
-      fecha: "10/10/2025",
-      hora: "8:00 am - 9:00 am",
-    },
-    {
-      id: "4",
-      nombre: "Lucca",
-      fecha: "12/10/2025",
-      hora: "8:00 am - 9:00 am",
-    },
-    {
-      id: "5",
-      nombre: "Lucca",
-      fecha: "14/10/2025",
-      hora: "8:00 am - 9:00 am",
-    },
+    { id: "3", nombre: "Lucca", fecha: "10/10/2025", hora: "8:00 am - 9:00 am" },
+    { id: "4", nombre: "Lucca", fecha: "12/10/2025", hora: "8:00 am - 9:00 am" },
+    { id: "5", nombre: "Lucca", fecha: "14/10/2025", hora: "8:00 am - 9:00 am" },
   ];
 
-  const renderCita = ({ item }: any) => (
-    <View style={styles.card}>
-      {/* Imagen de la mascota */}
-      <Image
-        source={require("../../assets/images/navegacion/foto.png")}
-        style={styles.avatar}
-      />
+  const renderCita = ({ item }: any) => {
+    const estado = estadoCitas[item.id];
 
-      {/* Contenido de la tarjeta */}
-      <View style={styles.cardInfo}>
-        <Text style={styles.nombre}>{item.nombre}</Text>
+    return (
+      <View style={styles.card}>
+        <Image
+          source={require("../../assets/images/navegacion/foto.png")}
+          style={styles.avatar}
+        />
 
-        <View style={styles.row}>
-          <Ionicons name="time-outline" size={14} color="gray" />
-          <Text style={styles.texto}>{item.hora}</Text>
-        </View>
+        <View style={styles.cardInfo}>
+          <Text style={styles.nombre}>{item.nombre}</Text>
 
-        <View style={styles.row}>
-          <Ionicons name="calendar-outline" size={14} color="gray" />
-          <Text style={styles.texto}>{item.fecha}</Text>
-        </View>
+          <View style={styles.row}>
+            <Ionicons name="time-outline" size={14} color="gray" />
+            <Text style={styles.texto}>{item.hora}</Text>
+          </View>
 
-        {/* Botones de estado */}
-        <View style={styles.botonesRow}>
-          <TouchableOpacity style={[styles.boton, styles.culmino]}>
-            <Text style={styles.botonTexto}>Culminó</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={[styles.boton, styles.noAsistio]}>
-            <Text style={styles.botonTexto}>No asistió</Text>
-          </TouchableOpacity>
+          <View style={styles.row}>
+            <Ionicons name="calendar-outline" size={14} color="gray" />
+            <Text style={styles.texto}>{item.fecha}</Text>
+          </View>
+
+          <View style={styles.botonesRow}>
+            <TouchableOpacity
+              style={[
+                styles.boton,
+                estado === "culmino" ? styles.culminoActivo : styles.culmino,
+              ]}
+              onPress={() => handleEstado(item.id, "culmino")}
+            >
+              <Text style={styles.botonTexto}>Culminó</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[
+                styles.boton,
+                estado === "noAsistio" ? styles.noAsistioActivo : styles.noAsistio,
+              ]}
+              onPress={() => handleEstado(item.id, "noAsistio")}
+            >
+              <Text style={styles.botonTexto}>No asistió</Text>
+            </TouchableOpacity>
+          </View>
         </View>
       </View>
-    </View>
-  );
+    );
+  };
 
   return (
     <View style={styles.container}>
-      {/* Tabs */}
+      {/* ✅ Encabezado general reutilizable */}
+      <Encabezado />
+
+      {/* ✅ Título de esta pantalla (separado del encabezado) */}
+      <Text style={styles.tituloAgenda}>Mi Agenda</Text>
+
+      {/* --- Tabs --- */}
       <View style={styles.tabs}>
         <TouchableOpacity
-          style={[
-            styles.tab,
-            selectedTab === "pasadas" && styles.tabActiva,
-          ]}
+          style={[styles.tab, selectedTab === "pasadas" && styles.tabActiva]}
           onPress={() => setSelectedTab("pasadas")}
         >
           <Text
-            style={[
-              styles.tabTexto,
-              selectedTab === "pasadas" && styles.tabTextoActivo,
-            ]}
+            style={[styles.tabTexto, selectedTab === "pasadas" && styles.tabTextoActivo]}
           >
             Citas pasadas
           </Text>
         </TouchableOpacity>
 
         <TouchableOpacity
-          style={[
-            styles.tab,
-            selectedTab === "futuras" && styles.tabActiva,
-          ]}
+          style={[styles.tab, selectedTab === "futuras" && styles.tabActiva]}
           onPress={() => setSelectedTab("futuras")}
         >
           <Text
-            style={[
-              styles.tabTexto,
-              selectedTab === "futuras" && styles.tabTextoActivo,
-            ]}
+            style={[styles.tabTexto, selectedTab === "futuras" && styles.tabTextoActivo]}
           >
             Citas futuras
           </Text>
         </TouchableOpacity>
       </View>
 
-      {/* Lista de citas */}
+      {/* --- Lista de citas --- */}
       <FlatList
         data={selectedTab === "pasadas" ? citasPasadas : citasFuturas}
         keyExtractor={(item) => item.id}
@@ -134,7 +116,7 @@ export default function Agenda() {
         contentContainerStyle={{ paddingBottom: 100 }}
       />
 
-      {/* Menú inferior */}
+      {/* --- Menú inferior --- */}
       <View style={styles.menuContainer}>
         <MenuVet />
       </View>
@@ -148,11 +130,20 @@ const styles = StyleSheet.create({
     backgroundColor: "#fff",
     paddingHorizontal: 10,
   },
+
+  // --- Título principal ---
+  tituloAgenda: {
+    fontSize: 22,
+    fontWeight: "bold",
+    color: "#14841C",
+    textAlign: "center",
+    marginVertical: 15,
+  },
+
   // --- Tabs ---
   tabs: {
     flexDirection: "row",
     justifyContent: "space-between",
-    marginTop: 10,
     marginBottom: 15,
     borderBottomWidth: 1,
     borderBottomColor: "#ccc",
@@ -214,8 +205,6 @@ const styles = StyleSheet.create({
     color: "gray",
     marginLeft: 4,
   },
-
-  // --- Botones dentro de la tarjeta ---
   botonesRow: {
     flexDirection: "row",
     marginTop: 6,
@@ -231,15 +220,12 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: "600",
   },
-  culmino: {
-    backgroundColor: "#14841C",
-  },
-  noAsistio: {
-    backgroundColor: "#555",
-  },
-
-  // --- Menú inferior ---
+  culmino: { backgroundColor: "#14841C" },
+  culminoActivo: { backgroundColor: "#0B570F" },
+  noAsistio: { backgroundColor: "#555" },
+  noAsistioActivo: { backgroundColor: "#222" },
   menuContainer: {
     marginTop: 10,
   },
 });
+

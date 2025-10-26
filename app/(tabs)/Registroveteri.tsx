@@ -1,236 +1,165 @@
-import React, { useState } from "react";
-import {
-  View,
-  Text,
-  StyleSheet,
-  ScrollView,
-  TouchableOpacity,
-  Alert,
-} from "react-native";
+import BotonGeneral from "@/components/BotonGeneral";
+import { Picker } from "@react-native-picker/picker";
 import axios from "axios";
 import { useRouter } from "expo-router";
-import BotonGeneral from "@/components/BotonGeneral";
-import MenuVet from "@/components/MenuVet";
-import moment from "moment";
-import "moment/locale/es";
+import React, { useEffect, useState } from "react";
+import { ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
 
-moment.locale("es");
-
-export default function Horariovet() {
+export default function RegistroVeteri() {
   const router = useRouter();
+  const [Especializaciones, setEspecializaciones] = useState([]);
+  const [servicio, setservicio] = useState([]);
 
-  // Días de la semana (en mayúscula inicial para coincidir con ENUM)
-  const diasSemana = [
-    { nombre: "Lun", valor: "Lunes" },
-    { nombre: "Mar", valor: "Martes" },
-    { nombre: "Mié", valor: "Miércoles" },
-    { nombre: "Jue", valor: "Jueves" },
-    { nombre: "Vie", valor: "Viernes" },
-    { nombre: "Sáb", valor: "Sábado" },
-    { nombre: "Dom", valor: "Domingo" },
-  ];
-
-  const [diasSeleccionados, setDiasSeleccionados] = useState<string[]>([]);
-  const [horaInicio, setHoraInicio] = useState<string | null>(null);
-  const [horaFin, setHoraFin] = useState<string | null>(null);
-
-  // Generar lista de horas
-  const horas: string[] = [];
-  for (let h = 8; h <= 20; h++) {
-    horas.push(`${h}:00`);
-    horas.push(`${h}:30`);
-  }
-
-  // Selección múltiple de días
-  const toggleDia = (dia: string) => {
-    setDiasSeleccionados((prev) =>
-      prev.includes(dia) ? prev.filter((d) => d !== dia) : [...prev, dia]
-    );
-  };
-
-  // --- GUARDAR HORARIO EN BD ---
-  const guardarHorario = async () => {
-    if (diasSeleccionados.length === 0) {
-      Alert.alert("Selecciona al menos un día");
-      return;
-    }
-    if (!horaInicio || !horaFin) {
-      Alert.alert("Selecciona hora de inicio y finalización");
-      return;
-    }
-
+  const getEspecializaciones = async () => {
     try {
-      // Enviar un horario por cada día seleccionado
-      for (const dia of diasSeleccionados) {
-        const data = {
-          dia_semana: dia,
-          hora_inicio: horaInicio + ":00", // formato compatible con TIME
-          hora_finalizacion: horaFin + ":00",
-        };
+      const response = await axios.get(
+        //IP Salomé casa
+        "http://192.168.101.73:3000/api/especializaciones"
+        //IP Salomé datos
+        // "http://10.121.63.130:3000/api/especializaciones"
 
-        // Cambia la IP según tu entorno local
-        await axios.post("http://10.164.93.119:3000/api/horarios", data);
-      }
+        //IP Haidy casa
+        //"http://192.168.1.16:3000/api/especializaciones"
+        //IP Haidy datos
+        //"http://10.164.93.119:3000/api/especializaciones"
 
-      Alert.alert("Éxito", "Horarios guardados correctamente.");
-      router.push("./Perfilvet");
+      );
+        setEspecializaciones(response.data);
     } catch (error) {
-      console.error("Error al guardar horario:", error);
-      Alert.alert("Error", "No se pudo guardar el horario en la base de datos.");
+      console.log("Error al obtener los datos de las especializaciones:", error);
     }
   };
+
+  useEffect(() => {
+    getEspecializaciones();
+  }, []);
+
+  const getservicio = async () => {
+    try {
+      const response = await axios.get(
+        //IP Salomé casa
+        "http://192.168.101.73:3000/api/servicio"
+        //IP Salomé datos
+        // "http://10.121.63.130:3000/api/servicio"
+        
+
+        //IP Haidy casa
+        //"http://192.168.1.16:3000/api/servicio"
+        //IP Haidy datos
+        //"http://10.164.93.119:3000/api/servicio"
+
+      );
+        setservicio(response.data);
+    } catch (error) {
+      console.log("Error fetching data:", error);
+    }
+  };
+
+  useEffect(() => {
+    getservicio();
+  }, []);
+
+  
+  // Estados para pickers
+  const [especializacion, setEspecializacion] = useState("");
+  const [servicios, setservicios] = useState("");
+
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.titulo}>Selecciona tu horario de trabajo</Text>
+    <ScrollView contentContainerStyle={styles.container}>
+      <Text style={styles.title}>Registro</Text>
 
-      {/* Carrusel de días */}
-      <Text style={styles.subtitulo}>Días de la semana</Text>
-      <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-        {diasSemana.map((dia) => (
-          <TouchableOpacity
-            key={dia.valor}
-            style={[
-              styles.diaCard,
-              diasSeleccionados.includes(dia.valor) && styles.diaSeleccionado,
-            ]}
-            onPress={() => toggleDia(dia.valor)}
-          >
-            <Text
-              style={[
-                styles.diaTexto,
-                diasSeleccionados.includes(dia.valor) && styles.textoSeleccionado,
-              ]}
-            >
-              {dia.nombre}
-            </Text>
-          </TouchableOpacity>
-        ))}
-      </ScrollView>
+      <TextInput placeholder="Identificación" style={styles.input} keyboardType="numeric"/>
+      <TextInput placeholder="Primer nombre" style={styles.input} />
+      <TextInput placeholder="Segundo nombre" style={styles.input} />
+      <TextInput placeholder="Primer apellido" style={styles.input} />
+      <TextInput placeholder="Segundo apellido" style={styles.input} />
+      <TextInput placeholder="Correo electrónico" style={styles.input} keyboardType="email-address"/>
+      <TextInput placeholder="Teléfono" style={styles.input} keyboardType="phone-pad"/>
+      <TextInput placeholder="Dirección de la clínica" style={styles.input} />
 
-      {/* Hora inicio */}
-      <Text style={styles.subtitulo}>Hora de inicio</Text>
-      <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-        {horas.map((hora) => (
-          <TouchableOpacity
-            key={`inicio-${hora}`}
-            style={[
-              styles.horaCard,
-              horaInicio === hora && styles.horaSeleccionada,
-            ]}
-            onPress={() => setHoraInicio(hora)}
-          >
-            <Text
-              style={[
-                styles.horaTexto,
-                horaInicio === hora && styles.textoSeleccionado,
-              ]}
-            >
-              {moment(hora, "H:mm").format("hh:mm A")}
-            </Text>
-          </TouchableOpacity>
-        ))}
-      </ScrollView>
-
-      {/* Hora final */}
-      <Text style={styles.subtitulo}>Hora de finalización</Text>
-      <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-        {horas.map((hora) => (
-          <TouchableOpacity
-            key={`fin-${hora}`}
-            style={[
-              styles.horaCard,
-              horaFin === hora && styles.horaSeleccionada,
-            ]}
-            onPress={() => setHoraFin(hora)}
-          >
-            <Text
-              style={[
-                styles.horaTexto,
-                horaFin === hora && styles.textoSeleccionado,
-              ]}
-            >
-              {moment(hora, "H:mm").format("hh:mm A")}
-            </Text>
-          </TouchableOpacity>
-        ))}
-      </ScrollView>
-
-      {/* Botón guardar */}
-      <View style={{ marginTop: 25 }}>
-        <BotonGeneral title="Guardar horario" onPress={guardarHorario} />
+      {/* Picker de Especialización */}
+      <View style={styles.pickerContainer}>
+        <Picker
+          selectedValue={especializacion}
+          onValueChange={(itemValue) => setEspecializacion(itemValue)}
+          style={styles.picker}
+        >
+          {Especializaciones.map((esp: any) => (
+            <Picker.Item
+              key={esp.nombre}
+              label={esp.nombre}
+              value={esp.nombre}
+            />
+          ))}
+        </Picker>
       </View>
 
-      {/* Menú inferior */}
-      <View style={{ marginTop: 10 }}>
-        <MenuVet />
+      {/* Picker de servicio */}
+      <View style={styles.pickerContainer}>
+        <Picker
+          selectedValue={servicios}
+          onValueChange={(itemValue) => setservicios(itemValue)}
+          style={styles.picker}
+        >
+          {servicio.map((serv: any) => (
+            <Picker.Item
+              key={serv.nombre}
+              label={serv.nombre}
+              value={serv.nombre}
+            />
+          ))}
+        </Picker>
       </View>
-    </View>
+
+      <TextInput
+        placeholder="Contraseña"
+        style={styles.input}
+        secureTextEntry
+      />
+
+      {/* Botón Guardar */}
+      <BotonGeneral
+        title="Guardar"
+        onPress={() => router.push("./Perfilvet")}
+      />
+    </ScrollView>
   );
 }
 
-// --- ESTILOS ---
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
+    flexGrow: 1, // Asegura que el ScrollView ocupe todo el espacio disponible
+    justifyContent: "center",
+    alignItems: "center",
     backgroundColor: "#fff",
-    paddingTop: 50,
-    alignItems: "center",
+    padding: 20,
   },
-  titulo: {
-    fontSize: 20,
+  title: {
+    fontSize: 28,
     fontWeight: "bold",
-    marginBottom: 15,
+    color: "#0000",
+    marginBottom: 20,
+    marginTop: 20,
   },
-  subtitulo: {
-    fontSize: 16,
-    fontWeight: "600",
-    alignSelf: "flex-start",
-    marginLeft: 20,
-    marginTop: 15,
-    color: "#555",
+  input: {
+    borderWidth: 1,
+    borderColor: "#4CAF50",
+    borderRadius: 8,
+    padding: 12,
+    width: "90%",
+    marginBottom: 12,
+    minHeight: 50,
   },
-  diaCard: {
-    backgroundColor: "#e3f2fd",
-    borderRadius: 10,
-    paddingVertical: 10,
-    paddingHorizontal: 14,
-    alignItems: "center",
-    justifyContent: "center",
-    marginHorizontal: 6,
-    width: 70,
-    height: 70,
+  pickerContainer: {
+    borderWidth: 1,
+    borderColor: "#4CAF50",
+    borderRadius: 8,
+    width: "90%",
+    marginBottom: 12,
   },
-  diaSeleccionado: {
-    backgroundColor: "#14841C",
-  },
-  diaTexto: {
-    fontSize: 15,
-    fontWeight: "600",
-    color: "#333",
-  },
-  textoSeleccionado: {
-    color: "#fff",
-    fontWeight: "bold",
-  },
-  horaCard: {
-    backgroundColor: "#f5f5f5",
-    borderRadius: 10,
-    paddingVertical: 10,
-    paddingHorizontal: 15,
-    alignItems: "center",
-    justifyContent: "center",
-    marginHorizontal: 5,
-    marginTop: 10,
-    width: 100,
-    height: 60,
-  },
-  horaSeleccionada: {
-    backgroundColor: "#14841C",
-  },
-  horaTexto: {
-    fontSize: 16,
-    color: "#333",
+  picker: {
+    height: 50,
+    width: "100%",
   },
 });
-

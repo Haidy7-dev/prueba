@@ -31,14 +31,14 @@ const guardarPerfil = async () => {
     };
 
     //IP Salomé casa
-        // "http://--------:3000/api/usuario"
+    const respuesta = await axios.post("http://192.168.101.73:3000/api/usuario", datosPerfil);
     //IP Salomé datos
-        // "http://10.121.63.130:3000/api/usuario"
+    //const respuesta = await axios.post("http://10.121.63.130:3000/api/usuario", datosPerfil);
 
     //IP Haidy casa
         //const respuesta = await axios.post("http://192.168.1.16:3000/api/usuario", datosPerfil);
     //IP Haidy datos
-    const respuesta = await axios.post("http://10.164.93.119:3000/api/usuario", datosPerfil);
+    //const respuesta = await axios.post("http://10.164.93.119:3000/api/usuario", datosPerfil);
     
 
     // Si llega respuesta exitosa
@@ -194,7 +194,7 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     alignItems: "center",
     paddingHorizontal: 30,
-    paddingTop: 10,
+    paddingTop: 40,
     paddingBottom: 5,
   },
   logo: {

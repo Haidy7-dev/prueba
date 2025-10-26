@@ -33,7 +33,7 @@ export default function ElegirRol() {
         <View style={{ height: 15 }} /> 
         <BotonGeneral
           title="Soy veterinario"
-          onPress={() => router.push("./Regristroveteri")}
+          onPress={() => router.push("./Registroveteri")}
         />
       </View>
 

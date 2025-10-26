@@ -28,7 +28,9 @@ export default function PerfilVeterinario() {
     try {
       const response = await axios.get(
         // "http://10.121.63.130:3000/api/especializaciones"  // Salomé datos
-        "http://10.164.93.119:3000/api/especializaciones"  // Haidy datos
+         "http://192.168.101.73:3000/api/especializaciones"  // Salomé casa
+        //"http://10.164.93.119:3000/api/especializaciones"  // Haidy datos
+
       );
       setEspecializaciones(response.data);
     } catch (error) {

@@ -57,11 +57,11 @@ const styles = StyleSheet.create({
     bottom: 0,
     left: 0,
     right: 0,
-    elevation: 10, // sombra Android
-    shadowColor: "#000", // sombra iOS
-    shadowOffset: { width: 0, height: -2 },
-    shadowOpacity: 0.3,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.5,
     shadowRadius: 4,
+    elevation: 3,
   },
   item: {
     alignItems: "center",
@@ -79,6 +79,6 @@ const styles = StyleSheet.create({
     backgroundColor: "#3D7447",
   },
   activeIcon: {
-    tintColor: "#FFD166", // color resaltado
+    tintColor: "#fff", // color resaltado
   },
 });

@@ -1,5 +1,14 @@
-import React from 'react';
-import { View, Text, Image, TouchableOpacity, Modal, StyleSheet, ScrollView, Platform } from 'react-native';
+import React from "react";
+import {
+  Modal,
+  View,
+  Text,
+  Image,
+  TouchableOpacity,
+  StyleSheet,
+} from "react-native";
+import { BlurView } from "expo-blur";
+import { Feather } from "@expo/vector-icons";
 
 interface Oferta {
   id: number;
@@ -11,54 +20,80 @@ interface Oferta {
   imagen: any;
 }
 
-interface Props {
+interface ModalOfertaProps {
   visible: boolean;
   oferta: Oferta | null;
   onClose: () => void;
+  onVerPerfil?: (oferta?: Oferta) => void;
 }
 
-export default function ModalOferta({ visible, oferta, onClose }: Props) {
+export default function ModalOferta({
+  visible,
+  oferta,
+  onClose,
+  onVerPerfil,
+}: ModalOfertaProps) {
   if (!oferta) return null;
 
   return (
-    <Modal
-      visible={visible}
-      transparent={true}
-      animationType="fade"
-      onRequestClose={onClose}
-    >
-      <View style={styles.overlay}>
-        <View style={styles.modalContainer}>
-          <TouchableOpacity style={styles.closeButton} onPress={onClose}>
-            <Text style={styles.closeButtonText}>✕</Text>
-          </TouchableOpacity>
-          
-          <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
-            <Text style={styles.titulo}>{oferta.titulo}</Text>
-            <Text style={styles.descuentoGrande}>{oferta.descuento}</Text>
-            
-            <Image source={oferta.imagen} style={styles.imagenGrande} resizeMode="cover" />
-            
-            <View style={styles.contenido}>
-              <Text style={styles.descripcion}>{oferta.descripcion}</Text>
-              
-              <View style={styles.seccion}>
-                <Text style={styles.etiqueta}>✓ Incluye:</Text>
-                <Text style={styles.texto}>{oferta.beneficio}</Text>
+    <Modal animationType="fade" transparent visible={visible} onRequestClose={onClose}>
+      <BlurView intensity={80} tint="light" style={styles.overlay}>
+        <View style={styles.container}>
+          {/* Cuadro verde principal */}
+          <View style={styles.cuadroVerde}>
+            {/* Icono X arriba derecha */}
+            <TouchableOpacity onPress={onClose} style={styles.iconoCerrar}>
+              <Feather name="x" size={28} color="#000" />
+            </TouchableOpacity>
+
+            {/* Título centrado */}
+            <Text style={styles.titulo}>Oferta</Text>
+
+            {/* Recuadro interno negro */}
+            <View style={styles.cuadroNegro}>
+              {/* Contenedor superior (texto) */}
+              <View style={styles.superior}>
+                <Text style={styles.descuento}>{oferta.descuento}</Text>
+                <Text style={styles.descripcion}>{oferta.descripcion}</Text>
+                <Text style={styles.textoNormal}>¡Conoce al veterinario de la oferta!</Text>
+                <Text style={styles.textoNegrita}>{oferta.beneficio}</Text>
+                <Text style={[styles.textoNormal, { marginTop: 6 }]}>
+                  {oferta.condicion}
+                </Text>
               </View>
-              
-              <View style={styles.seccion}>
-                <Text style={styles.etiqueta}>⏰ Condición:</Text>
-                <Text style={styles.textoCondicion}>{oferta.condicion}</Text>
+
+              {/* Contenedor inferior (botón + imagen) */}
+              <View style={styles.inferior}>
+                {/* IZQUIERDA: botón */}
+                <View style={styles.izquierda}>
+                  <TouchableOpacity
+                    style={styles.boton}
+                    onPress={() => onVerPerfil?.(oferta)}
+                  >
+                    <View style={styles.botonContenido}>
+                      <Text style={styles.botonTexto}>Ver perfil</Text>
+                    </View>
+                  </TouchableOpacity>
+                </View>
+
+                {/* DERECHA: imagen */}
+                <View style={styles.derecha}>
+                  <Image source={oferta.imagen} style={styles.imagen} resizeMode="cover"
+                  />
+                </View>
               </View>
-              
-              <TouchableOpacity style={styles.botonPerfil} onPress={onClose}>
-                <Text style={styles.botonPerfilTexto}>Ver perfil</Text>
-              </TouchableOpacity>
             </View>
-          </ScrollView>
+
+            {/* Icono salir (abajo, centrado) */}
+            <TouchableOpacity onPress={onClose} style={styles.iconoSalirContainer}>
+              <Image
+                source={require("../assets/images/navegacion/iconosalir.png")}
+                style={styles.iconoSalir}
+              />
+            </TouchableOpacity>
+          </View>
         </View>
-      </View>
+      </BlurView>
     </Modal>
   );
 }
@@ -66,106 +101,120 @@ export default function ModalOferta({ visible, oferta, onClose }: Props) {
 const styles = StyleSheet.create({
   overlay: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 20,
+    justifyContent: "center",
+    alignItems: "center",
   },
-  modalContainer: {
-    backgroundColor: '#fff',
-    borderRadius: 16,
-    width: '100%',
-    maxWidth: 400,
-    maxHeight: '80%',
-    ...Platform.select({
-      ios: {
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.25,
-        shadowRadius: 4,
-      },
-      android: {
-        elevation: 5,
-      },
-    }),
+  container: {
+    alignItems: "center",
+    justifyContent: "center",
+    width: "85%",
   },
-  scrollContent: {
-    padding: 20,
+  cuadroVerde: {
+    borderColor: "#2A4712",
+    borderWidth: 2,
+    borderRadius: 10,
+    backgroundColor: "#fff",
+    padding: 14,
+    width: "100%",
+    alignItems: "center",
+    position: "relative",
   },
-  closeButton: {
-    position: 'absolute',
+  iconoCerrar: {
+    position: "absolute",
     top: 10,
-    right: 10,
-    zIndex: 1,
-    width: 30,
-    height: 30,
-    borderRadius: 15,
-    backgroundColor: '#f0f0f0',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  closeButtonText: {
-    fontSize: 20,
-    color: '#666',
+    right: 12,
   },
   titulo: {
+    color: "#479454",
     fontSize: 20,
-    fontWeight: 'bold',
-    color: '#4CAF50',
-    marginBottom: 8,
-    textAlign: 'center',
-    marginTop: 30,
+    fontWeight: "bold",
+    textAlign: "center",
+    marginBottom: 10,
   },
-  descuentoGrande: {
-    fontSize: 28,
-    fontWeight: 'bold',
-    textAlign: 'center',
-    marginBottom: 16,
-    color: '#333',
+  cuadroNegro: {
+    borderColor: "#000",
+    borderWidth: 1,
+    borderRadius: 8,
+    padding: 14,
+    paddingRight: 0,
+    paddingBottom: 0,
+    width: "100%",
   },
-  imagenGrande: {
-    width: '100%',
-    height: 150,
-    borderRadius: 12,
-    marginBottom: 16,
+  superior: {
+    alignItems: "center",
+    marginBottom: 10,
   },
-  contenido: {
-    paddingHorizontal: 8,
+  descuento: {
+    fontSize: 24,
+    fontWeight: "bold",
+    color: "#000",
+    textAlign: "center",
   },
   descripcion: {
-    fontSize: 16,
-    color: '#333',
-    marginBottom: 16,
-    textAlign: 'center',
-  },
-  seccion: {
-    marginBottom: 16,
-  },
-  etiqueta: {
     fontSize: 14,
-    fontWeight: 'bold',
-    color: '#4CAF50',
-    marginBottom: 4,
+    color: "#333",
+    marginVertical: 8,
+    textAlign: "center",
   },
-  texto: {
+  textoNormal: {
+    fontSize: 13,
+    textAlign: "center",
+    color: "#333",
+  },
+  textoNegrita: {
     fontSize: 14,
-    color: '#666',
+    fontWeight: "bold",
+    textAlign: "center",
+    color: "#000",
   },
-  textoCondicion: {
-    fontSize: 14,
-    color: '#FF5722',
-    fontWeight: '500',
+  inferior: {
+    flexDirection: "row",
+    gap: 5,
+    justifyContent: "space-between",
+    
   },
-  botonPerfil: {
-    backgroundColor: '#4CAF50',
-    paddingVertical: 12,
+  izquierda: {
+    width: "49%",
+    justifyContent: "center",
+  },
+  derecha: {
+    width: "49%",
+  },
+  boton: {
+    backgroundColor: "#479454",
+    paddingVertical: 10,
     borderRadius: 8,
-    alignItems: 'center',
-    marginTop: 8,
+    alignItems: "center",
+    justifyContent: "center",
   },
-  botonPerfilTexto: {
-    color: '#fff',
+  botonContenido: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  botonTexto: {
+    color: "#fff",
+    fontSize: 14,
     fontWeight: 'bold',
-    fontSize: 16,
+    marginRight: 6,
+  },
+  iconoVerMas: {
+    width: 18,
+    height: 18,
+    tintColor: "#fff",
+  },
+  imagen: {
+    width: "100%",
+    height: 100,
+    borderRadius: 5,
+  },
+  iconoSalirContainer: {
+    marginTop: 12,
+    alignSelf: "flex-start",
+  },
+  iconoSalir: {
+    width: 26,
+    height: 26,
+    
   },
 });

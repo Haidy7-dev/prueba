@@ -1,92 +1,85 @@
-import axios from 'axios';
-import React, { useEffect, useState } from 'react';
-import {
-  ActivityIndicator,
-  FlatList,
-  Platform,
-  SafeAreaView,
-  ScrollView,
-  StatusBar,
-  StyleSheet,
-  Text,
-  TextInput,
-  View
-} from 'react-native';
+import axios from "axios";
+import React, { useEffect, useState } from "react";
+import {ActivityIndicator,FlatList,Platform,SafeAreaView,ScrollView,StatusBar,StyleSheet,Text,TextInput,View,} from "react-native";
 import Encabezado from "../../components/Encabezado";
 import MenuDueno from "../../components/MenuDueno";
 import ModalOferta from "../../components/ModalOferta";
 import TarjetaOferta from "../../components/TarjetaOferta";
-import TarjetaVeterinario from "../../components/TarjetaVeterinario";
+import TarjetaVeterinario, { Veterinario } from "../../components/TarjetaVeterinario";
+import { EvilIcons } from "@expo/vector-icons";
+import { useRouter } from "expo-router";
 
 
-
-
-// Datos fijos de ofertas
+// 🔸 Datos fijos de ofertas (por ahora manuales)
 const OFERTAS = [
   {
     id: 1,
-    titulo: 'Oferta',
-    descuento: '50% de descuento',
-    descripcion: 'En la pasta para las pulgas',
-    beneficio: 'Revisión gratuita incluida 🐾',
-    condicion: 'Solo por tiempo limitado',
+    titulo: "Oferta",
+    descuento: "50% de descuento",
+    descripcion: "En la pasta para las pulgas",
+    beneficio: "Revisión gratuita incluida 🐾",
+    condicion: "Solo por tiempo limitado",
     imagen: require("../../assets/images/navegacion/oferta.png"),
   },
   {
     id: 2,
-    titulo: 'Oferta',
-    descuento: '50% de descuento',
-    descripcion: 'En la pasta para las pulgas',
-    beneficio: 'Revisión gratuita incluida 🐾',
-    condicion: 'Solo por tiempo limitado',
+    titulo: "Oferta",
+    descuento: "50% de descuento",
+    descripcion: "En la pasta para las pulgas",
+    beneficio: "Revisión gratuita incluida 🐾",
+    condicion: "Solo por tiempo limitado",
     imagen: require("../../assets/images/navegacion/oferta.png"),
   },
   {
     id: 3,
-    titulo: 'Oferta',
-    descuento: '50% de descuento',
-    descripcion: 'En la pasta para las pulgas',
-    beneficio: 'Revisión gratuita incluida 🐾',
-    condicion: 'Solo por tiempo limitado',
+    titulo: "Oferta",
+    descuento: "50% de descuento",
+    descripcion: "En la pasta para las pulgas",
+    beneficio: "Revisión gratuita incluida 🐾",
+    condicion: "Solo por tiempo limitado",
     imagen: require("../../assets/images/navegacion/oferta.png"),
   },
   {
     id: 4,
-    titulo: 'Oferta',
-    descuento: '50% de descuento',
-    descripcion: 'En la pasta para las pulgas',
-    beneficio: 'Revisión gratuita incluida 🐾',
-    condicion: 'Solo por tiempo limitado',
+    titulo: "Oferta",
+    descuento: "50% de descuento",
+    descripcion: "En la pasta para las pulgas",
+    beneficio: "Revisión gratuita incluida 🐾",
+    condicion: "Solo por tiempo limitado",
     imagen: require("../../assets/images/navegacion/oferta.png"),
   },
 ];
 
 export default function HomeDueno() {
-  const [veterinarios, setVeterinarios] = useState([]);
-  const [veterinariosFiltrados, setVeterinariosFiltrados] = useState([]);
+  // 🔹 Estados
+  const [veterinarios, setVeterinarios] = useState<Veterinario[]>([]);
+  const [veterinariosFiltrados, setVeterinariosFiltrados] = useState<Veterinario[]>([]);
   const [loading, setLoading] = useState(true);
-  const [busqueda, setBusqueda] = useState('');
+  const [busqueda, setBusqueda] = useState<string>("");
   const [modalVisible, setModalVisible] = useState(false);
-  const [ofertaSeleccionada, setOfertaSeleccionada] = useState(null);
+  const [ofertaSeleccionada, setOfertaSeleccionada] = useState<any>(null);
 
-  // Obtener veterinarios al cargar el componente
+  const router = useRouter();
+
+  // 🟢 Obtener veterinarios al cargar
   const getVeterinarios = async () => {
     try {
       setLoading(true);
       const response = await axios.get(
         //IP Salomé casa
-        // "http://--------:3000/api/veterinarios"
+        "http://192.168.101.73:3000/api/veterinarios"
         //IP Salomé datos
-        //"http://10.121.63.130:3000/api/veterinarios"
+        // "http://10.121.63.130:3000/api/veterinarios"
 
         //IP Haidy casa
-        //"http://192.168.1.16:3000/api/veterinariosa"
+        //"http://192.168.1.16:3000/api/veterinarios"
         //IP Haidy datos
-        "http://10.164.93.119:3000/api/veterinarios"
+        //"http://10.164.93.119:3000/api/veterinarios"
 
         
-      );
-      console.log('Veterinarios obtenidos:', response.data);
+        );
+      console.log("Veterinarios obtenidos:", response.data);
+
       setVeterinarios(response.data);
       setVeterinariosFiltrados(response.data);
     } catch (error) {
@@ -96,11 +89,11 @@ export default function HomeDueno() {
     }
   };
 
-  // Buscar veterinarios
+  // 🟢 Buscar veterinarios
   const buscarVeterinarios = async (texto: string) => {
     setBusqueda(texto);
-    
-    if (texto.trim() === '') {
+
+    if (texto.trim() === "") {
       setVeterinariosFiltrados(veterinarios);
       return;
     }
@@ -108,60 +101,65 @@ export default function HomeDueno() {
     try {
       const response = await axios.get(
         //IP Salomé casa
-        // "http://--------:3000/api/veterinarios/buscar"
+        "http://192.168.101.73:3000/api/veterinarios/buscar"
         //IP Salomé datos
-        //"http://10.121.63.130:3000/api/veterinarios/buscar"
+        // "http://10.121.63.130:3000/api/veterinarios/buscar"
 
         //IP Haidy casa
         //"http://192.168.1.16:3000/api/veterinarios/buscar"
         //IP Haidy datos
-        "http://10.164.93.119:3000/api/veterinarios/buscar"
-        
-        
-        , {
-        params: { query: texto }
-      });
-      console.log('Resultados de búsqueda:', response.data);
+        //"http://10.164.93.119:3000/api/veterinarios/buscar"
+        ,
+        {
+          params: { query: texto },
+        }
+      );
+      console.log("Resultados de búsqueda:", response.data);
       setVeterinariosFiltrados(response.data);
     } catch (error) {
       console.log("Error al buscar veterinarios:", error);
-      // Filtrado local como fallback
-      const filtrados = veterinarios.filter(vet =>
+
+      // 🔸 Filtro local como respaldo
+      const filtrados = veterinarios.filter((vet: Veterinario) =>
         vet.nombre.toLowerCase().includes(texto.toLowerCase())
       );
       setVeterinariosFiltrados(filtrados);
     }
   };
 
+  // 🟢 Ejecutar al montar
   useEffect(() => {
     getVeterinarios();
   }, []);
 
-  const handleOfertaPress = (oferta) => {
+  // 🟢 Handlers
+  const handleOfertaPress = (oferta: any) => {
     setOfertaSeleccionada(oferta);
     setModalVisible(true);
   };
 
-  const handleVeterinarioPress = (veterinario) => {
-    console.log('Ver perfil de:', veterinario.nombre);
-    // Aquí puedes navegar al perfil del veterinario
-    // navigation.navigate('PerfilVeterinario', { id: veterinario.id_veterinario });
-  };
+  const handleVeterinarioPress = (veterinario: Veterinario) => {
+  router.push({
+    pathname: "./VerVeterinario",
+    params: { id: veterinario.id},
+  });
+};
 
+  // 🟢 Render
   return (
     <SafeAreaView style={styles.safeArea}>
       <StatusBar barStyle="dark-content" backgroundColor="#fff" />
       <View style={styles.container}>
         <Encabezado />
-        
-        <ScrollView 
-          style={styles.contenido} 
+
+        <ScrollView
+          style={styles.contenido}
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
         >
-          {/* Buscador */}
+          {/* 🔍 Buscador */}
           <View style={styles.buscadorContainer}>
-            <Text style={styles.iconoBuscar}>🔍</Text>
+            <EvilIcons name="search" style={styles.iconoBuscar} />
             <TextInput
               style={styles.buscador}
               placeholder="Buscar veterinario"
@@ -171,41 +169,40 @@ export default function HomeDueno() {
             />
           </View>
 
-          {/* Sección de Ofertas */}
+          {/* 🎁 Sección de Ofertas */}
           <Text style={styles.seccionTitulo}>Ofertas</Text>
           <FlatList
             horizontal
             data={OFERTAS}
             keyExtractor={(item) => item.id.toString()}
             renderItem={({ item }) => (
-              <TarjetaOferta
-                oferta={item}
-                onPress={() => handleOfertaPress(item)}
-              />
+              <TarjetaOferta oferta={item} onPress={() => handleOfertaPress(item)} />
             )}
             showsHorizontalScrollIndicator={false}
             contentContainerStyle={styles.listaOfertas}
           />
 
-          {/* Sección de Veterinarios Recomendados */}
+          {/* 🧑‍⚕️ Veterinarios recomendados */}
           <Text style={styles.seccionTitulo}>Veterinarios recomendados</Text>
-          
+
           {loading ? (
             <View style={styles.loadingContainer}>
-              <ActivityIndicator size="large" color="#4CAF50" />
+              <ActivityIndicator size="large" color="#479454" />
               <Text style={styles.loadingText}>Cargando veterinarios...</Text>
             </View>
           ) : veterinariosFiltrados.length === 0 ? (
             <View style={styles.emptyContainer}>
               <Text style={styles.emptyText}>
-                {busqueda ? 'No se encontraron veterinarios' : 'No hay veterinarios disponibles'}
+                {busqueda
+                  ? "No se encontraron veterinarios"
+                  : "No hay veterinarios disponibles"}
               </Text>
             </View>
           ) : (
             <View style={styles.listaVeterinarios}>
               {veterinariosFiltrados.map((veterinario) => (
                 <TarjetaVeterinario
-                  key={veterinario.id_veterinario}
+                  key={veterinario.id}
                   veterinario={veterinario}
                   onPress={() => handleVeterinarioPress(veterinario)}
                 />
@@ -214,7 +211,7 @@ export default function HomeDueno() {
           )}
         </ScrollView>
 
-        {/* Modal de Oferta */}
+        {/* 🟢 Modal de oferta */}
         <ModalOferta
           visible={modalVisible}
           oferta={ofertaSeleccionada}
@@ -227,14 +224,15 @@ export default function HomeDueno() {
   );
 }
 
+// 🎨 ESTILOS
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: "#fff",
   },
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: "#fff",
   },
   contenido: {
     flex: 1,
@@ -243,40 +241,41 @@ const styles = StyleSheet.create({
   buscadorContainer: {
     marginTop: 16,
     marginBottom: 20,
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#fff',
-    borderRadius: 25,
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#fff",
+    borderRadius: 15,
     paddingHorizontal: 20,
-    paddingVertical: Platform.OS === 'ios' ? 12 : 4,
+    paddingVertical: Platform.OS === "ios" ? 12 : 4,
     ...Platform.select({
       ios: {
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 1 },
-        shadowOpacity: 0.1,
-        shadowRadius: 2,
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 8 },
+        shadowOpacity: 0.5,
+        shadowRadius: 5,
       },
       android: {
-        elevation: 2,
+        elevation: 8, // sombra más notoria en Android
       },
     }),
   },
   iconoBuscar: {
-    fontSize: 18,
+    fontSize: 30,
     marginRight: 10,
+    color: "#000000",
   },
   buscador: {
     flex: 1,
     fontSize: 16,
     paddingVertical: 8,
-    color: '#333',
+    color: "#333",
   },
   seccionTitulo: {
-    fontSize: 20,
-    fontWeight: 'bold',
+    fontSize: 22,
+    fontWeight: "bold",
     marginBottom: 16,
     marginTop: 8,
-    color: '#333',
+    color: "#000",
   },
   listaOfertas: {
     paddingVertical: 8,
@@ -286,23 +285,23 @@ const styles = StyleSheet.create({
     marginBottom: 100, // Espacio para el menú inferior
   },
   loadingContainer: {
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
     padding: 40,
   },
   loadingText: {
     marginTop: 12,
     fontSize: 14,
-    color: '#666',
+    color: "#666",
   },
   emptyContainer: {
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
     padding: 40,
   },
   emptyText: {
     fontSize: 16,
-    color: '#999',
-    textAlign: 'center',
+    color: "#666",
+    textAlign: "center",
   },
 });

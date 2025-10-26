@@ -76,7 +76,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#3D7447",
   },
   activeIcon: {
-    tintColor: "#FFD166", // color dorado del ícono activo
+    tintColor: "#fff", // color del ícono activo
   },
 });
 

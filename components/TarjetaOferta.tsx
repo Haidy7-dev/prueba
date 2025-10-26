@@ -23,9 +23,17 @@ export default function TarjetaOferta({ oferta, onPress }: Props) {
       <View style={{flexDirection: 'row', gap: 5 }}>
         <View style={styles.izquierda}>
           <Text style={styles.descripcion}>{oferta.descripcion}</Text>
+          
           <TouchableOpacity style={styles.boton} onPress={onPress}>
+            <View style={styles.botonContenido}>
             <Text style={styles.botonTexto}>Ver más</Text>
+            <Image
+                source={require('../assets/images/navegacion/iconoVerMasBlanco.png')}
+                style={styles.iconoVerMas}
+              />
+            </View>
           </TouchableOpacity>
+
         </View>
         <View style={styles.derecha}>
           <Image source={oferta.imagen} style={styles.imagen} resizeMode="cover" />
@@ -45,10 +53,11 @@ const styles = StyleSheet.create({
     marginHorizontal: 8,
     width: 270,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.5,
+    shadowRadius: 5,
+    elevation: 6,
+    overflow: 'hidden',
   },
   descuento: {
     fontSize: 18,
@@ -65,18 +74,29 @@ const styles = StyleSheet.create({
   imagen: {
     width: '100%',
     height: 100,
-    borderRadius: 8,
+    borderRadius: 5,
   },
   boton: {
-    backgroundColor: '#4CAF50',
+    backgroundColor: '#479454',
     paddingVertical: 10,
     borderRadius: 8,
     alignItems: 'center',
+    justifyContent: 'center',
+  },
+  botonContenido: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   botonTexto: {
     color: '#fff',
-    fontWeight: 'bold',
     fontSize: 14,
+    marginRight: 6, // separa el texto del ícono
+  },
+  iconoVerMas: {
+    width: 18,
+    height: 18,
+    tintColor: '#fff', // mantiene el color blanco del ícono si es PNG transparente
   },
   izquierda: {
     width: '49%',
