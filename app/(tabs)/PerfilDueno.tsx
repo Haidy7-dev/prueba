@@ -1,59 +1,105 @@
 import { Feather } from "@expo/vector-icons";
 import * as ImagePicker from "expo-image-picker";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {Alert,Image,ScrollView,StyleSheet,Text,TextInput,TouchableOpacity,View,} from "react-native";
 import MenuDueno from "../../components/MenuDueno";
 import BotonGeneral from "@/components/BotonGeneral";
 import axios from "axios";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
-export default function PerfilDueno() {
-  // Estado del perfil
-  const [perfil, setPerfil] = useState({
-    nombre: "",
-    identificacion: "",
-    correo: "",
-    direccion: "",
-    telefono: "",
-    numMascotas: "",
-  });
-
-  // Función para guardar los datos del perfil en el backend
-const guardarPerfil = async () => {
-  try {
-    // Objeto con la información del perfil
-    const datosPerfil = {
-      nombre: perfil.nombre,
-      identificacion: perfil.identificacion,
-      correo: perfil.correo,
-      direccion: perfil.direccion,
-      telefono: perfil.telefono,
-      //numero_mascotas: perfil.numeroMascotas,
-    };
-
-    //IP Salomé casa
-    const respuesta = await axios.post("http://192.168.101.73:3000/api/usuario", datosPerfil);
-    //IP Salomé datos
-    //const respuesta = await axios.post("http://10.121.63.130:3000/api/usuario", datosPerfil);
-
-    //IP Haidy casa
-        //const respuesta = await axios.post("http://192.168.1.16:3000/api/usuario", datosPerfil);
-    //IP Haidy datos
-    //const respuesta = await axios.post("http://10.164.93.119:3000/api/usuario", datosPerfil);
-    
-
-    // Si llega respuesta exitosa
-    Alert.alert("Éxito", "El perfil se actualizó correctamente");
-    console.log("Respuesta del servidor:", respuesta.data);
-  } catch (error) {
-    console.error("Error al guardar el perfil:", error);
-    Alert.alert("Error", "No se pudo guardar la información del perfil");
-  }
+// 🟢 Tipo del perfil de usuario
+type PerfilUsuario = {
+  id: string;
+  primer_nombre: string;
+  segundo_nombre: string;
+  primer_apellido: string;
+  segundo_apellido: string;
+  correo_electronico: string;
+  direccion: string;
+  telefono: string;
+  n_de_mascotas: string;
+  foto: string;
 };
 
-  // Estado para la imagen del perfil
+export default function PerfilDueno() {
+  const BASE_URL = "http://192.168.101.73:3000";
+
+  const [perfil, setPerfil] = useState<PerfilUsuario>({
+    id: "",
+    primer_nombre: "",
+    segundo_nombre: "",
+    primer_apellido: "",
+    segundo_apellido: "",
+    correo_electronico: "",
+    direccion: "",
+    telefono: "",
+    n_de_mascotas: "",
+    foto: "",
+  });
+
   const [fotoPerfil, setFotoPerfil] = useState<string | null>(null);
 
-  // Seleccionar imagen
+  // 🔹 Cargar perfil desde el backend
+  useEffect(() => {
+    const cargarPerfil = async () => {
+      try {
+        const userId = await AsyncStorage.getItem("userId");
+        if (!userId) return Alert.alert("Error", "Usuario no encontrado");
+
+        const respuesta = await axios.get(`${BASE_URL}/api/usuario/${userId}`);
+        const datos = respuesta.data;
+
+        setPerfil({
+          id: datos.id || "",
+          primer_nombre: datos.primer_nombre || "",
+          segundo_nombre: datos.segundo_nombre || "",
+          primer_apellido: datos.primer_apellido || "",
+          segundo_apellido: datos.segundo_apellido || "",
+          correo_electronico: datos.correo_electronico || "",
+          direccion: datos.direccion || "",
+          telefono: datos.telefono || "",
+          n_de_mascotas: datos.n_de_mascotas?.toString() || "0",
+          foto: datos.foto || "",
+        });
+
+        setFotoPerfil(datos.foto || null);
+      } catch (error) {
+        console.error("❌ Error al cargar perfil:", error);
+        Alert.alert("Error", "No se pudo cargar la información del perfil");
+      }
+    };
+
+    cargarPerfil();
+  }, []);
+
+  // 🔹 Guardar cambios del perfil
+  const guardarPerfil = async () => {
+    try {
+      const userId = await AsyncStorage.getItem("userId");
+      if (!userId) return Alert.alert("Error", "Usuario no identificado");
+
+      const datosActualizados = {
+        primer_nombre: perfil.primer_nombre,
+        segundo_nombre: perfil.segundo_nombre,
+        primer_apellido: perfil.primer_apellido,
+        segundo_apellido: perfil.segundo_apellido,
+        correo_electronico: perfil.correo_electronico,
+        direccion: perfil.direccion,
+        telefono: perfil.telefono,
+        n_de_mascotas: perfil.n_de_mascotas,
+        foto: fotoPerfil || perfil.foto,
+      };
+
+      await axios.put(`${BASE_URL}/api/usuario/${userId}`, datosActualizados);
+
+      Alert.alert("✅ Éxito", "La información ha sido actualizada correctamente");
+    } catch (error) {
+      console.error("❌ Error al guardar perfil:", error);
+      Alert.alert("Error", "No se pudo guardar la información del perfil");
+    }
+  };
+
+  // 🔹 Seleccionar imagen
   const seleccionarImagen = async () => {
     const permiso = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (!permiso.granted) {
@@ -73,8 +119,8 @@ const guardarPerfil = async () => {
     }
   };
 
-  // Cambiar valores del formulario
-  const handleChange = (field: string, value: string) => {
+  // 🔹 Cambiar valores del formulario
+  const handleChange = (field: keyof PerfilUsuario, value: string) => {
     setPerfil({ ...perfil, [field]: value });
   };
 
@@ -87,7 +133,6 @@ const guardarPerfil = async () => {
           style={styles.logo}
           resizeMode="contain"
         />
-
         <TouchableOpacity>
           <Image
             source={require("../../assets/images/navegacion/iconosalir.png")}
@@ -110,9 +155,10 @@ const guardarPerfil = async () => {
             style={styles.profileImage}
             resizeMode="cover"
           />
-
-          {/* Icono de edición */}
-          <TouchableOpacity style={styles.editIconContainer} onPress={seleccionarImagen}>
+          <TouchableOpacity
+            style={styles.editIconContainer}
+            onPress={seleccionarImagen}
+          >
             <Feather name="edit-3" size={18} color="#000" />
           </TouchableOpacity>
         </View>
@@ -120,75 +166,49 @@ const guardarPerfil = async () => {
         {/* Título */}
         <Text style={styles.title}>Editar perfil</Text>
 
-        {/* FORMULARIO */}
-        <View style={styles.formContainer}>
-          <Text style={styles.label}>Nombre completo</Text>
-          <TextInput
-            style={styles.input}
-            value={perfil.nombre}
-            onChangeText={(text) => handleChange("nombre", text)}
-          />
+        {/* FORMULARIO GENERADO AUTOMÁTICAMENTE */}
+        {(
+          [
+            ["Primer nombre", "primer_nombre"],
+            ["Segundo nombre", "segundo_nombre"],
+            ["Primer apellido", "primer_apellido"],
+            ["Segundo apellido", "segundo_apellido"],
+            ["Correo electrónico", "correo_electronico"],
+            ["Dirección", "direccion"],
+            ["Teléfono", "telefono"],
+            ["Número de mascotas", "n_de_mascotas"],
+          ] as [string, keyof PerfilUsuario][]
+        ).map(([label, key]) => (
+          <View key={key} style={{ width: "100%", marginBottom: 14 }}>
+            <Text style={styles.label}>{label}</Text>
+            <TextInput
+              style={styles.input}
+              value={perfil[key]}
+              onChangeText={(text) => handleChange(key, text)}
+              keyboardType={
+                key === "telefono"
+                  ? "phone-pad"
+                  : key === "correo_electronico"
+                  ? "email-address"
+                  : key === "n_de_mascotas"
+                  ? "numeric"
+                  : "default"
+              }
+            />
+          </View>
+        ))}
 
-          <Text style={styles.label}>Identificación</Text>
-          <TextInput
-            style={styles.input}
-            value={perfil.identificacion}
-            onChangeText={(text) => handleChange("identificacion", text)}
-          />
-
-          <Text style={styles.label}>Correo electrónico</Text>
-          <TextInput
-            style={styles.input}
-            keyboardType="email-address"
-            value={perfil.correo}
-            onChangeText={(text) => handleChange("correo", text)}
-          />
-
-          <Text style={styles.label}>Dirección de residencia</Text>
-          <TextInput
-            style={styles.input}
-            value={perfil.direccion}
-            onChangeText={(text) => handleChange("direccion", text)}
-          />
-
-          <Text style={styles.label}>Teléfono</Text>
-          <TextInput
-            style={styles.input}
-            keyboardType="phone-pad"
-            value={perfil.telefono}
-            onChangeText={(text) => handleChange("telefono", text)}
-          />
-
-          <Text style={styles.label}>Número de mascotas</Text>
-          <TextInput
-            style={styles.input}
-            keyboardType="numeric"
-            value={perfil.numMascotas}
-            onChangeText={(text) => handleChange("numMascotas", text)}
-          />
-        </View>
-
-        <BotonGeneral
-          title="Guardar"
-          onPress={guardarPerfil}
-        />
-
+        <BotonGeneral title="Guardar" onPress={guardarPerfil} />
       </ScrollView>
-      
+
       {/* --- MENÚ INFERIOR --- */}
       <MenuDueno />
-
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#FFFFFF",
-  },
-
-  // --- ENCABEZADO ---
+  container: { flex: 1, backgroundColor: "#FFFFFF" },
   header: {
     flexDirection: "row",
     justifyContent: "space-between",
@@ -197,24 +217,14 @@ const styles = StyleSheet.create({
     paddingTop: 40,
     paddingBottom: 5,
   },
-  logo: {
-    width: 40,
-    height: 50,
-  },
-  iconSalir: {
-    width: 30,
-    height: 30,
-  },
-
-  // --- CONTENIDO PRINCIPAL ---
+  logo: { width: 40, height: 50 },
+  iconSalir: { width: 30, height: 30 },
   content: {
     alignItems: "center",
     paddingVertical: 20,
     paddingHorizontal: 25,
-    paddingBottom: 100, // espacio para el menú
+    paddingBottom: 100,
   },
-
-  // --- IMAGEN DE PERFIL ---
   profileImageContainer: {
     position: "relative",
     alignItems: "center",
@@ -237,18 +247,11 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: "#000000",
   },
-
-  // --- TÍTULO ---
   title: {
     fontSize: 18,
     fontWeight: "bold",
     color: "#333",
     marginBottom: 10,
-  },
-
-  // --- FORMULARIO ---
-  formContainer: {
-    width: "100%",
   },
   label: {
     color: "#333",
@@ -263,8 +266,10 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     paddingHorizontal: 10,
     paddingVertical: 8,
-    marginBottom: 14,
     fontSize: 15,
     color: "#333",
   },
 });
+
+
+

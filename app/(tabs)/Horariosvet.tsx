@@ -1,25 +1,18 @@
 import React, { useState, useEffect } from "react";
-import {
-  View,
-  Text,
-  StyleSheet,
-  ScrollView,
-  TouchableOpacity,
-  Alert,
-  KeyboardAvoidingView,
-  Platform,
-} from "react-native";
+import {View,Text,StyleSheet,ScrollView,TouchableOpacity,Alert,KeyboardAvoidingView,Platform,} from "react-native";
 import axios from "axios";
 import { useRouter } from "expo-router";
 import BotonGeneral from "@/components/BotonGeneral";
 import MenuVet from "@/components/MenuVet";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import moment from "moment";
 import "moment/locale/es";
 
 moment.locale("es");
 
-export default function Horariovet() {
+export default function Horariosvet() {
   const router = useRouter();
+  const BASE_URL = "http://192.168.101.73:3000";
 
   const diasSemana = [
     { nombre: "Lun", valor: "Lunes" },
@@ -31,30 +24,41 @@ export default function Horariovet() {
     { nombre: "Dom", valor: "Domingo" },
   ];
 
-  // 🔹 Estado para manejar bloques por día
-  const [horariosPorDia, setHorariosPorDia] = useState<Record<string, { inicio: string | null; fin: string | null }[]>>({});
+  const [horariosPorDia, setHorariosPorDia] = useState<
+    Record<string, { inicio: string | null; fin: string | null }[]>
+  >({});
   const [cargando, setCargando] = useState(false);
+  const [idVet, setIdVet] = useState<string | null>(null);
 
-  // 🔹 Horas AM para inicio
+  // 🔹 Cargar ID del veterinario desde AsyncStorage
+  useEffect(() => {
+    const obtenerIdVet = async () => {
+      const id = await AsyncStorage.getItem("userId");
+      if (id) setIdVet(id);
+    };
+    obtenerIdVet();
+  }, []);
+
+  // 🔹 Horas AM y PM
   const horasAM: string[] = [];
   for (let h = 6; h < 12; h++) {
     horasAM.push(`${h}:00`);
     horasAM.push(`${h}:30`);
   }
 
-  // 🔹 Horas PM para finalización
   const horasPM: string[] = [];
   for (let h = 12; h <= 23; h++) {
     horasPM.push(`${h}:00`);
     horasPM.push(`${h}:30`);
   }
 
-  // 🔹 Cargar horarios desde backend
+  // 🔹 Cargar horarios del veterinario
   useEffect(() => {
     const cargarHorarios = async () => {
+      if (!idVet) return;
       try {
         setCargando(true);
-        const res = await axios.get("http://192.168.101.73:3000/api/horarios");
+        const res = await axios.get(`${BASE_URL}/api/horarios/${idVet}`);
         const data = res.data;
 
         const agrupado: Record<string, { inicio: string; fin: string }[]> = {};
@@ -73,7 +77,7 @@ export default function Horariovet() {
       }
     };
     cargarHorarios();
-  }, []);
+  }, [idVet]);
 
   // 🔹 Agregar bloque horario a un día
   const agregarBloque = (dia: string) => {
@@ -83,7 +87,7 @@ export default function Horariovet() {
     }));
   };
 
-  // 🔹 Seleccionar hora dentro de un bloque
+  // 🔹 Cambiar hora en un bloque
   const setHora = (dia: string, index: number, tipo: "inicio" | "fin", hora: string) => {
     setHorariosPorDia((prev) => {
       const nuevoDia = [...(prev[dia] || [])];
@@ -92,31 +96,42 @@ export default function Horariovet() {
     });
   };
 
-  // 🔹 Guardar todos los bloques seleccionados
+  // 🔹 Guardar horarios en BD
   const guardarHorario = async () => {
+    if (!idVet) {
+      Alert.alert("Error", "No se encontró el ID del veterinario.");
+      return;
+    }
+
     const diasSeleccionados = Object.keys(horariosPorDia);
     if (diasSeleccionados.length === 0) {
-      Alert.alert("Selecciona al menos un día");
+      Alert.alert("Selecciona al menos un día.");
       return;
     }
 
     try {
       setCargando(true);
-      await axios.delete("http://192.168.101.73:3000/api/horarios"); // limpia antes de guardar (opcional)
 
+      // 🧹 Eliminar los horarios previos de este veterinario
+      await axios.delete(`${BASE_URL}/api/horarios/${idVet}`);
+
+      // 💾 Guardar nuevos bloques
       for (const dia of diasSeleccionados) {
         for (const bloque of horariosPorDia[dia]) {
           if (!bloque.inicio || !bloque.fin) continue;
+
           const data = {
             dia_semana: dia,
             hora_inicio: bloque.inicio + ":00",
             hora_finalizacion: bloque.fin + ":00",
+            id_veterinario_o_zootecnista: idVet,
           };
-          await axios.post("http://192.168.101.73:3000/api/horarios", data);
+
+          await axios.post(`${BASE_URL}/api/horarios`, data);
         }
       }
 
-      Alert.alert("Éxito", "Horarios actualizados correctamente.");
+      Alert.alert("Éxito", "Horarios guardados correctamente.");
       router.push("./Perfilvet");
     } catch (error) {
       console.error("Error al guardar horario:", error);
@@ -126,6 +141,7 @@ export default function Horariovet() {
     }
   };
 
+  // --- UI ---
   return (
     <KeyboardAvoidingView
       style={{ flex: 1, backgroundColor: "#fff" }}
@@ -213,7 +229,7 @@ export default function Horariovet() {
   );
 }
 
-// --- ESTILOS ---
+// --- ESTILOS ORIGINALES ---
 const styles = StyleSheet.create({
   scrollContainer: {
     alignItems: "center",
@@ -288,10 +304,5 @@ const styles = StyleSheet.create({
     fontSize: 14,
   },
 });
-
-
-
-
-
 
 

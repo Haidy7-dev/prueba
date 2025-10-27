@@ -1,6 +1,8 @@
 import { useRouter, usePathname } from "expo-router";
 import React from "react";
-import { Image, StyleSheet, TouchableOpacity, View } from "react-native";
+import { Image, StyleSheet, TouchableOpacity, View, Platform } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context"; // 👈 Importante
+
 
 const icons = {
   casa: require("../assets/images/navegacion/casa.png"),
@@ -11,6 +13,8 @@ const icons = {
 export default function MenuVet() {
   const router = useRouter();
   const pathname = usePathname(); // 📍 Detecta la pantalla actual
+  const insets = useSafeAreaInsets(); // 👈 Detecta el área segura del dispositivo
+
 
   const items = [
     { name: "Inicio", icon: icons.casa, route: "/Iniciovet" },
@@ -19,7 +23,12 @@ export default function MenuVet() {
   ];
 
   return (
-    <View style={styles.container}>
+    <View 
+    style={[
+      styles.container,
+     { paddingBottom: Platform.OS === "android" ? insets.bottom || 10 : insets.bottom}, 
+      ]}
+      >
       {items.map((item) => {
         const isActive = pathname === item.route;
 

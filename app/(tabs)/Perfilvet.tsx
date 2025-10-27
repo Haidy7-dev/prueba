@@ -6,63 +6,92 @@ import { Picker } from "@react-native-picker/picker";
 import * as ImagePicker from "expo-image-picker";
 import axios from "axios";
 import React, { useState, useEffect } from "react";
-import {ScrollView,StyleSheet,Text,TextInput,View,Image,TouchableOpacity,Alert,} from "react-native";
+import {
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
+  Image,
+  TouchableOpacity,
+  Alert,
+} from "react-native";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export default function PerfilVeterinario() {
   const router = useRouter();
+  const BASE_URL = "http://192.168.101.73:3000";
 
-  // --- Estados de los datos del formulario ---
+  const [idVet, setIdVet] = useState<string | null>(null);
   const [nombre, setNombre] = useState("");
-  const [identificacion, setIdentificacion] = useState("");
   const [correo, setCorreo] = useState("");
   const [telefono, setTelefono] = useState("");
   const [especializacion, setEspecializacion] = useState("");
   const [informacion, setInformacion] = useState("");
   const [fotoPerfil, setFotoPerfil] = useState<string | null>(null);
-
-  // --- Estado para las especializaciones desde la base de datos ---
   const [especializaciones, setEspecializaciones] = useState([]);
 
-  // --- OBTENER DATOS DE LA BASE DE DATOS ---
-  const getEspecializaciones = async () => {
-    try {
-      const response = await axios.get(
-        // "http://10.121.63.130:3000/api/especializaciones"  // Salomé datos
-         "http://192.168.101.73:3000/api/especializaciones"  // Salomé casa
-        //"http://10.164.93.119:3000/api/especializaciones"  // Haidy datos
-
-      );
-      setEspecializaciones(response.data);
-    } catch (error) {
-      console.log("Error al obtener las especializaciones:", error);
-    }
-  };
-
+  // ✅ Cargar veterinario desde backend
   useEffect(() => {
+    const cargarDatos = async () => {
+      try {
+        const id = await AsyncStorage.getItem("userId");
+        if (!id) return;
+
+        setIdVet(id);
+
+        const res = await axios.get(`${BASE_URL}/api/veterinarios/${id}`);
+        const v = res.data;
+        setNombre(v.nombre || "");
+        setCorreo(v.correo_electronico || "");
+        setTelefono(v.telefono || "");
+        setEspecializacion(v.especializacion || "");
+        setInformacion(v.informacion || "");
+        setFotoPerfil(v.foto || null);
+      } catch (error: any) {
+        console.error("Error al cargar perfil:", error);
+        Alert.alert("Error", "No se pudo cargar el perfil del veterinario.");
+      }
+    };
+    cargarDatos();
+  }, []);
+
+  // ✅ Cargar lista de especializaciones
+  useEffect(() => {
+    const getEspecializaciones = async () => {
+      try {
+        const response = await axios.get(`${BASE_URL}/api/especializaciones`);
+        setEspecializaciones(response.data);
+      } catch (error) {
+        console.log("Error al obtener especializaciones:", error);
+      }
+    };
     getEspecializaciones();
   }, []);
 
-  // --- GUARDAR INFORMACIÓN ---
-  const manejarGuardar = () => {
-    console.log("Datos guardados correctamente:");
-    console.log({
-      nombre,
-      identificacion,
-      correo,
-      telefono,
-      especializacion,
-      informacion,
-      fotoPerfil,
-    });
-    Alert.alert("Éxito", "La información ha sido guardada correctamente.");
+  // ✅ Guardar perfil
+  const manejarGuardar = async () => {
+    if (!idVet) return Alert.alert("Error", "No se pudo identificar al veterinario.");
+
+    try {
+      await axios.put(`${BASE_URL}/api/veterinarios/${idVet}`, {
+        nombre,
+        correo_electronico: correo,
+        telefono,
+        especializacion,
+        informacion,
+        foto: fotoPerfil,
+      });
+
+      Alert.alert("Éxito", "Perfil actualizado correctamente.");
+    } catch (error) {
+      console.error("Error al guardar perfil:", error);
+      Alert.alert("Error", "No se pudo guardar la información.");
+    }
   };
 
-  // --- NAVEGAR A HORARIOS ---
-  const irAHorarios = () => {
-    router.push("/Horariosvet");
-  };
+  const irAHorarios = () => router.push("/Horariosvet");
 
-  // --- SELECCIONAR IMAGEN DE PERFIL ---
   const seleccionarImagen = async () => {
     const permiso = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (!permiso.granted) {
@@ -77,33 +106,25 @@ export default function PerfilVeterinario() {
       quality: 0.8,
     });
 
-    if (!resultado.canceled) {
-      setFotoPerfil(resultado.assets[0].uri);
-    }
+    if (!resultado.canceled) setFotoPerfil(resultado.assets[0].uri);
   };
 
   return (
     <View style={styles.container}>
-      {/* --- ENCABEZADO --- */}
       <View style={styles.header}>
         <Image
           source={require("../../assets/images/navegacion/Pata.png")}
           style={styles.logo}
-          resizeMode="contain"
         />
-
         <TouchableOpacity>
           <Image
             source={require("../../assets/images/navegacion/iconosalir.png")}
             style={styles.iconSalir}
-            resizeMode="contain"
           />
         </TouchableOpacity>
       </View>
 
-      {/* --- CONTENIDO PRINCIPAL --- */}
       <ScrollView contentContainerStyle={styles.content}>
-        {/* IMAGEN DE PERFIL */}
         <View style={styles.profileImageContainer}>
           <Image
             source={
@@ -112,9 +133,7 @@ export default function PerfilVeterinario() {
                 : require("../../assets/images/navegacion/foto.png")
             }
             style={styles.profileImage}
-            resizeMode="cover"
           />
-          {/* Icono de edición */}
           <TouchableOpacity
             style={styles.editIconContainer}
             onPress={seleccionarImagen}
@@ -123,21 +142,13 @@ export default function PerfilVeterinario() {
           </TouchableOpacity>
         </View>
 
-        {/* TÍTULO */}
         <Text style={styles.title}>Editar perfil</Text>
 
-        {/* CAMPOS DE TEXTO */}
         <TextInput
           style={styles.input}
           placeholder="Nombre completo"
           value={nombre}
           onChangeText={setNombre}
-        />
-        <TextInput
-          style={styles.input}
-          placeholder="Identificación"
-          value={identificacion}
-          onChangeText={setIdentificacion}
         />
         <TextInput
           style={styles.input}
@@ -152,11 +163,10 @@ export default function PerfilVeterinario() {
           onChangeText={setTelefono}
         />
 
-        {/* PICKER DE ESPECIALIZACIÓN (desde la BD) */}
         <View style={styles.pickerContainer}>
           <Picker
             selectedValue={especializacion}
-            onValueChange={(itemValue) => setEspecializacion(itemValue)}
+            onValueChange={(val) => setEspecializacion(val)}
           >
             <Picker.Item label="Seleccione su especialización" value="" />
             {especializaciones.map((esp: any) => (
@@ -165,7 +175,6 @@ export default function PerfilVeterinario() {
           </Picker>
         </View>
 
-        {/* INFORMACIÓN */}
         <TextInput
           style={[styles.input, styles.textArea]}
           placeholder="Mi información..."
@@ -174,30 +183,22 @@ export default function PerfilVeterinario() {
           multiline
         />
 
-        {/* BOTONES */}
         <View style={styles.botonesContainer}>
           <BotonGeneral title="Guardar" onPress={manejarGuardar} />
           <Text style={styles.infoText}>
             ¡Ya casi terminas! Guarda tu info y organiza tus horarios.
           </Text>
-
           <BotonGeneral title="Ir a horarios" onPress={irAHorarios} />
         </View>
       </ScrollView>
 
-      {/* --- MENÚ INFERIOR --- */}
       <MenuVet />
     </View>
   );
 }
 
-// --- ESTILOS ---
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#fff",
-    paddingTop: 40,
-  },
+  container: { flex: 1, backgroundColor: "#fff", paddingTop: 40 },
   header: {
     flexDirection: "row",
     justifyContent: "space-between",
@@ -205,32 +206,16 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     marginBottom: 10,
   },
-  logo: {
-    width: 40,
-    height: 40,
-  },
-  iconSalir: {
-    width: 30,
-    height: 30,
-  },
+  logo: { width: 40, height: 40 },
+  iconSalir: { width: 30, height: 30 },
   content: {
     alignItems: "center",
     paddingVertical: 20,
     paddingHorizontal: 25,
     paddingBottom: 100,
   },
-  profileImageContainer: {
-    position: "relative",
-    alignItems: "center",
-    justifyContent: "center",
-    marginBottom: 15,
-  },
-  profileImage: {
-    width: 130,
-    height: 130,
-    borderRadius: 70,
-    backgroundColor: "#E0E0E0",
-  },
+  profileImageContainer: { position: "relative", alignItems: "center" },
+  profileImage: { width: 130, height: 130, borderRadius: 70, backgroundColor: "#E0E0E0" },
   editIconContainer: {
     position: "absolute",
     bottom: 8,
@@ -239,16 +224,9 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     padding: 6,
     borderWidth: 1,
-    borderColor: "#000000",
+    borderColor: "#000",
   },
-  title: {
-    fontSize: 18,
-    fontWeight: "bold",
-    textAlign: "left",
-    alignSelf: "flex-start",
-    marginLeft: 25,
-    marginBottom: 10,
-  },
+  title: { fontSize: 18, fontWeight: "bold", alignSelf: "flex-start", marginLeft: 25 },
   input: {
     borderWidth: 1,
     borderColor: "green",
@@ -265,25 +243,16 @@ const styles = StyleSheet.create({
     width: "100%",
     marginBottom: 12,
   },
-  textArea: {
-    height: 80,
-    textAlignVertical: "top",
-  },
-  botonesContainer: {
-    width: "100%",
-    alignItems: "center",
-    marginTop: 10,
-  },
+  textArea: { height: 80, textAlignVertical: "top" },
+  botonesContainer: { width: "100%", alignItems: "center", marginTop: 10 },
   infoText: {
     textAlign: "center",
     color: "#444",
     fontSize: 13,
     marginVertical: 12,
-    marginHorizontal: 20,
     fontStyle: "italic",
   },
 });
-
 
 
 

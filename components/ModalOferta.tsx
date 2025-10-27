@@ -12,6 +12,7 @@ import { Feather } from "@expo/vector-icons";
 
 interface Oferta {
   id: number;
+  idVeterinario: number; // 👈 nuevo campo
   titulo: string;
   descuento: string;
   descripcion: string;
@@ -36,35 +37,35 @@ export default function ModalOferta({
   if (!oferta) return null;
 
   return (
-    <Modal animationType="fade" transparent visible={visible} onRequestClose={onClose}>
+    <Modal
+      animationType="fade"
+      transparent
+      visible={visible}
+      onRequestClose={onClose}
+    >
       <BlurView intensity={80} tint="light" style={styles.overlay}>
         <View style={styles.container}>
-          {/* Cuadro verde principal */}
           <View style={styles.cuadroVerde}>
-            {/* Icono X arriba derecha */}
             <TouchableOpacity onPress={onClose} style={styles.iconoCerrar}>
               <Feather name="x" size={28} color="#000" />
             </TouchableOpacity>
 
-            {/* Título centrado */}
             <Text style={styles.titulo}>Oferta</Text>
 
-            {/* Recuadro interno negro */}
             <View style={styles.cuadroNegro}>
-              {/* Contenedor superior (texto) */}
               <View style={styles.superior}>
                 <Text style={styles.descuento}>{oferta.descuento}</Text>
                 <Text style={styles.descripcion}>{oferta.descripcion}</Text>
-                <Text style={styles.textoNormal}>¡Conoce al veterinario de la oferta!</Text>
+                <Text style={styles.textoNormal}>
+                  ¡Conoce al veterinario de la oferta!
+                </Text>
                 <Text style={styles.textoNegrita}>{oferta.beneficio}</Text>
                 <Text style={[styles.textoNormal, { marginTop: 6 }]}>
                   {oferta.condicion}
                 </Text>
               </View>
 
-              {/* Contenedor inferior (botón + imagen) */}
               <View style={styles.inferior}>
-                {/* IZQUIERDA: botón */}
                 <View style={styles.izquierda}>
                   <TouchableOpacity
                     style={styles.boton}
@@ -76,16 +77,20 @@ export default function ModalOferta({
                   </TouchableOpacity>
                 </View>
 
-                {/* DERECHA: imagen */}
                 <View style={styles.derecha}>
-                  <Image source={oferta.imagen} style={styles.imagen} resizeMode="cover"
+                  <Image
+                    source={oferta.imagen}
+                    style={styles.imagen}
+                    resizeMode="cover"
                   />
                 </View>
               </View>
             </View>
 
-            {/* Icono salir (abajo, centrado) */}
-            <TouchableOpacity onPress={onClose} style={styles.iconoSalirContainer}>
+            <TouchableOpacity
+              onPress={onClose}
+              style={styles.iconoSalirContainer}
+            >
               <Image
                 source={require("../assets/images/navegacion/iconosalir.png")}
                 style={styles.iconoSalir}
@@ -99,16 +104,8 @@ export default function ModalOferta({
 }
 
 const styles = StyleSheet.create({
-  overlay: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  container: {
-    alignItems: "center",
-    justifyContent: "center",
-    width: "85%",
-  },
+  overlay: { flex: 1, justifyContent: "center", alignItems: "center" },
+  container: { alignItems: "center", justifyContent: "center", width: "85%" },
   cuadroVerde: {
     borderColor: "#2A4712",
     borderWidth: 2,
@@ -119,11 +116,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     position: "relative",
   },
-  iconoCerrar: {
-    position: "absolute",
-    top: 10,
-    right: 12,
-  },
+  iconoCerrar: { position: "absolute", top: 10, right: 12 },
   titulo: {
     color: "#479454",
     fontSize: 20,
@@ -140,10 +133,7 @@ const styles = StyleSheet.create({
     paddingBottom: 0,
     width: "100%",
   },
-  superior: {
-    alignItems: "center",
-    marginBottom: 10,
-  },
+  superior: { alignItems: "center", marginBottom: 10 },
   descuento: {
     fontSize: 24,
     fontWeight: "bold",
@@ -156,30 +146,16 @@ const styles = StyleSheet.create({
     marginVertical: 8,
     textAlign: "center",
   },
-  textoNormal: {
-    fontSize: 13,
-    textAlign: "center",
-    color: "#333",
-  },
+  textoNormal: { fontSize: 13, textAlign: "center", color: "#333" },
   textoNegrita: {
     fontSize: 14,
     fontWeight: "bold",
     textAlign: "center",
     color: "#000",
   },
-  inferior: {
-    flexDirection: "row",
-    gap: 5,
-    justifyContent: "space-between",
-    
-  },
-  izquierda: {
-    width: "49%",
-    justifyContent: "center",
-  },
-  derecha: {
-    width: "49%",
-  },
+  inferior: { flexDirection: "row", gap: 5, justifyContent: "space-between" },
+  izquierda: { width: "49%", justifyContent: "center" },
+  derecha: { width: "49%" },
   boton: {
     backgroundColor: "#479454",
     paddingVertical: 10,
@@ -195,26 +171,10 @@ const styles = StyleSheet.create({
   botonTexto: {
     color: "#fff",
     fontSize: 14,
-    fontWeight: 'bold',
+    fontWeight: "bold",
     marginRight: 6,
   },
-  iconoVerMas: {
-    width: 18,
-    height: 18,
-    tintColor: "#fff",
-  },
-  imagen: {
-    width: "100%",
-    height: 100,
-    borderRadius: 5,
-  },
-  iconoSalirContainer: {
-    marginTop: 12,
-    alignSelf: "flex-start",
-  },
-  iconoSalir: {
-    width: 26,
-    height: 26,
-    
-  },
+  imagen: { width: "100%", height: 100, borderRadius: 5 },
+  iconoSalirContainer: { marginTop: 12, alignSelf: "flex-start" },
+  iconoSalir: { width: 26, height: 26 },
 });

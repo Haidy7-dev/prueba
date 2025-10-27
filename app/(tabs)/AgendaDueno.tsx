@@ -10,59 +10,77 @@ import {
 } from "react-native";
 import axios from "axios";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import Encabezado from "@/components/Encabezado";
-import MenuVet from "@/components/MenuVet";
-import MascotaCard from "@/components/MascotaCard";
+import MenuDueno from "../../components/MenuDueno";
 import { useRouter } from "expo-router";
+import MascotaCard from "@/components/MascotaCard";
+import Encabezado from "@/components/Encabezado";
 
 interface Cita {
   id: string;
-  nombreMascota: string;
+  nombre_mascota: string;
   fecha: string;
   hora_inicio: string;
-  hora_finalizacion: string;
-  servicio: string;
+  hora_fin: string;
+  tipo: string;
   foto?: string;
-  id_estado_cita: number | null;
-  esPasada?: boolean; //
+  id_estado_cita?: number | null;
+  id_servicio: string;
+  id_veterinario_o_zootecnista: string;
+  id_usuario: string;
+  calificada?: boolean; // viene del backend
+  esPendiente?: boolean;
+  culminada?: boolean;
 }
 
-export default function Agendavet() {
+export default function AgendaDueno() {
   const [citas, setCitas] = useState<Cita[]>([]);
   const [loading, setLoading] = useState(true);
-  const [tab, setTab] = useState<"pasadas" | "futuras">("pasadas");
+  const [tab, setTab] = useState<"pendientes" | "completadas">("pendientes");
 
   const router = useRouter();
   const BASE_URL = "http://192.168.101.73:3000";
 
   const getCitas = async () => {
     try {
-      const idVet = await AsyncStorage.getItem("userId");
-      if (!idVet) {
-        console.error("❌ No se encontró el id del veterinario logueado");
+      const idDueno = await AsyncStorage.getItem("userId");
+      if (!idDueno) {
+        console.error("❌ No se encontró el id del dueño logueado");
         setLoading(false);
         return;
       }
 
-      const response = await axios.get(`${BASE_URL}/api/citasVeterinario/${idVet}`);
-
+      const response = await axios.get(`${BASE_URL}/api/citasDueno/${idDueno}`);
       const citasData: Cita[] = response.data;
 
-      // 🔹 Separar citas por fecha y hora actual
       const ahora = new Date();
-      const citasSeparadas = citasData.map((cita) => {
-        const fechaHoraInicio = new Date(`${cita.fecha}T${cita.hora_inicio}`);
+
+      // Procesar citas
+      const procesadas = citasData.map((cita) => {
+        const fechaHoraFin = new Date(`${cita.fecha}T${cita.hora_fin}`);
+        const esPendiente = fechaHoraFin > ahora && !cita.calificada;
+        const culminada = fechaHoraFin < ahora && !cita.calificada;
+
         return {
           ...cita,
-          esPasada: fechaHoraInicio < ahora,
+          esPendiente,
+          culminada,
         };
       });
 
-      setCitas(citasSeparadas);
+      setCitas(procesadas);
     } catch (error) {
-      console.error("❌ Error al obtener citas:", error);
+      console.error("❌ Error al obtener citas del dueño:", error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const marcarComoCulminada = async (idCita: string) => {
+    try {
+      await axios.put(`${BASE_URL}/api/citasDueno/${idCita}/culmino`);
+      getCitas(); // refrescar
+    } catch (error) {
+      console.error("❌ Error al marcar cita como culminada:", error);
     }
   };
 
@@ -70,20 +88,13 @@ export default function Agendavet() {
     getCitas();
   }, []);
 
-  const actualizarEstado = async (idCita: string, estado: number) => {
-    try {
-      await axios.put(`${BASE_URL}/api/citasVeterinario/${idCita}/estado`, {
-        estado,
-      });
-      getCitas(); // Refrescar citas
-    } catch (error) {
-      console.error("❌ Error al actualizar estado:", error);
-    }
-  };
-
-  const citasFiltradas = citas.filter((c) =>
-    tab === "pasadas" ? c.esPasada : !c.esPasada
+  const citasPendientes = citas.filter(
+    (c) => c.esPendiente || c.culminada
   );
+  const citasCompletadas = citas.filter((c) => c.calificada);
+
+  const citasFiltradas =
+    tab === "pendientes" ? citasPendientes : citasCompletadas;
 
   if (loading) {
     return (
@@ -98,32 +109,37 @@ export default function Agendavet() {
     <SafeAreaView style={styles.container}>
       <Encabezado />
 
-      {/* 🔹 Pestañas de navegación */}
+      {/* Tabs */}
       <View style={styles.tabContainer}>
         <TouchableOpacity
-          style={[styles.tab, tab === "pasadas" && styles.tabActivo]}
-          onPress={() => setTab("pasadas")}
+          style={[styles.tab, tab === "pendientes" && styles.tabActivo]}
+          onPress={() => setTab("pendientes")}
         >
           <Text
-            style={[styles.tabTexto, tab === "pasadas" && styles.tabTextoActivo]}
+            style={[
+              styles.tabTexto,
+              tab === "pendientes" && styles.tabTextoActivo,
+            ]}
           >
-            Citas pasadas
+            Citas pendientes
           </Text>
         </TouchableOpacity>
 
         <TouchableOpacity
-          style={[styles.tab, tab === "futuras" && styles.tabActivo]}
-          onPress={() => setTab("futuras")}
+          style={[styles.tab, tab === "completadas" && styles.tabActivo]}
+          onPress={() => setTab("completadas")}
         >
           <Text
-            style={[styles.tabTexto, tab === "futuras" && styles.tabTextoActivo]}
+            style={[
+              styles.tabTexto,
+              tab === "completadas" && styles.tabTextoActivo,
+            ]}
           >
-            Citas futuras
+            Citas completadas
           </Text>
         </TouchableOpacity>
       </View>
 
-      {/* 🔹 Listado de citas */}
       <ScrollView
         style={{ flex: 1 }}
         contentContainerStyle={styles.scrollContent}
@@ -135,63 +151,61 @@ export default function Agendavet() {
           citasFiltradas.map((item) => (
             <MascotaCard
               key={item.id}
-              nombre={item.nombreMascota}
-              hora={`${item.hora_inicio} - ${item.hora_finalizacion}`}
+              nombre={item.nombre_mascota}
+              hora={`${item.hora_inicio} - ${item.hora_fin}`}
               fecha={item.fecha}
-              tipo={item.servicio}
+              tipo={item.tipo}
               foto={
                 item.foto
                   ? { uri: item.foto }
                   : require("../../assets/images/navegacion/foto.png")
               }
               estado={item.id_estado_cita}
-              onPress={
-                tab === "futuras"
+              onAccionPrincipal={
+                item.culminada && !item.calificada
+                  ? () => marcarComoCulminada(item.id)
+                  : undefined
+              }
+              textoAccionPrincipal="Culminó"
+              colorAccionPrincipal="#479454"
+              onAccionSecundaria={
+                item.culminada
                   ? () =>
                       router.push({
-                        pathname: "/DetalleCita",
-                        params: { idCita: item.id },
+                        pathname: "/Calificar",
+                        params: {
+                          id: item.id,
+                          idServicio: item.id_servicio,
+                          idVet: item.id_veterinario_o_zootecnista,
+                        },
                       })
                   : undefined
               }
-              onCulmino={
-                tab === "pasadas"
-                  ? () => actualizarEstado(item.id, 2) // Completada
-                  : undefined
+              textoAccionSecundaria={
+                item.culminada ? "Calificar" : undefined
               }
-              onAccionSecundaria={
-                tab === "pasadas"
-                  ? () => actualizarEstado(item.id, 3) // Cancelada
-                  : undefined
-              }
-              textoAccionSecundaria="No asistió"
-              colorAccionSecundaria="#555"
+              colorAccionSecundaria="#6CBA79"
             />
           ))
         )}
       </ScrollView>
 
-      <MenuVet />
+      <MenuDueno />
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: "#fff" },
-
   loaderContainer: { flex: 1, justifyContent: "center", alignItems: "center" },
   loaderText: { marginTop: 10, color: "#666" },
-
   scrollContent: { padding: 16, paddingBottom: 100 },
-
   noCitas: {
     textAlign: "center",
     color: "#555",
     fontSize: 16,
     marginTop: 20,
   },
-
-  // 🔹 Estilos pestañas
   tabContainer: {
     flexDirection: "row",
     borderBottomWidth: 1,

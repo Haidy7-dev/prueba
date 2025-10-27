@@ -1,94 +1,124 @@
-import React from "react";
-import { FlatList, StyleSheet, Text, View } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
+import React, { useEffect, useState } from "react";
+import {
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
+  ActivityIndicator,
+  SafeAreaView,
+} from "react-native";
 import { useRouter } from "expo-router";
+import axios from "axios";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import MenuVet from "@/components/MenuVet";
-import Encabezado from "@/components/Encabezado"; 
+import Encabezado from "@/components/Encabezado";
+import MascotaCard from "@/components/MascotaCard";
 
 interface Cita {
   id: string;
   nombreMascota: string;
-  hora: string;
   fecha: string;
-  tipo: string;
+  hora_inicio: string;
+  hora_finalizacion: string;
+  servicio: string;
+  modalidad: string;
+  iva: number;
+  total: number;
+  id_estado_cita: number | null;
+  foto?: string;
 }
 
-const citas: Cita[] = [
-  {
-    id: "1",
-    nombreMascota: "Lucca",
-    hora: "8:00 am - 9:00 am",
-    fecha: "18/01/2025",
-    tipo: "Cita general",
-  },
-  {
-    id: "2",
-    nombreMascota: "Max",
-    hora: "10:00 am - 11:00 am",
-    fecha: "18/01/2025",
-    tipo: "Cirugía general",
-  },
-  {
-    id: "3",
-    nombreMascota: "Luna",
-    hora: "2:00 pm - 3:00 pm",
-    fecha: "18/01/2025",
-    tipo: "Vacunación",
-  },
-];
-
-export default function CitasScreen() {
+export default function InicioVet() {
   const router = useRouter();
+  const [citas, setCitas] = useState<Cita[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  const BASE_URL = "http://192.168.101.73:3000";
+
+  // 🔹 Obtener citas del veterinario logueado
+  const getCitas = async () => {
+    try {
+      const idVet = await AsyncStorage.getItem("userId");
+      if (!idVet) {
+        console.error("❌ No se encontró el id del veterinario logueado");
+        setLoading(false);
+        return;
+      }
+
+      const response = await axios.get(`${BASE_URL}/api/citasVeterinario/${idVet}`);
+      setCitas(response.data);
+    } catch (error) {
+      console.error("❌ Error al obtener las citas:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    getCitas();
+  }, []);
+
+  if (loading) {
+    return (
+      <View style={styles.loaderContainer}>
+        <ActivityIndicator size="large" color="#008000" />
+        <Text style={styles.loaderText}>Cargando citas...</Text>
+      </View>
+    );
+  }
 
   return (
-    <View style={styles.container}>
-      {/*  Encabezado reutilizable */}
+    <SafeAreaView style={styles.safeArea}>
       <Encabezado />
+      <ScrollView
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+      >
+        <Text style={styles.titulo}>Mis citas para hoy</Text>
 
-      {/* Título local de la pantalla (no reutilizable) */}
-      <Text style={styles.titulo}>Mis citas para hoy</Text>
-
-      {/* Lista de citas */}
-      <FlatList
-        data={citas}
-        keyExtractor={(item) => item.id}
-        renderItem={({ item }) => (
-          <View style={styles.card}>
-            {/* Avatar del paciente */}
-            <View style={styles.avatarPlaceholder}>
-              <Ionicons name="paw-outline" size={28} color="green" />
-            </View>
-
-            <View style={styles.info}>
-              <Text style={styles.nombre}>{item.nombreMascota}</Text>
-
-              <View style={styles.row}>
-                <Ionicons name="time-outline" size={16} color="green" />
-                <Text style={styles.texto}>{item.hora}</Text>
-                <Text style={styles.fecha}>{item.fecha}</Text>
-              </View>
-
-              <View style={styles.row}>
-                <Ionicons name="medkit-outline" size={16} color="green" />
-                <Text style={styles.texto}>{item.tipo}</Text>
-              </View>
-            </View>
+        {citas.length === 0 ? (
+          <Text style={styles.noCitas}>No hay citas registradas.</Text>
+        ) : (
+          <View>
+            {citas.map((item) => (
+              <MascotaCard
+                key={item.id}
+                nombre={item.nombreMascota}
+                hora={`${item.hora_inicio} - ${item.hora_finalizacion}`}
+                fecha={item.fecha}
+                tipo={item.servicio}
+                foto={
+                  item.foto
+                    ? { uri: item.foto }
+                    : require("../../assets/images/navegacion/foto.png")
+                }
+                estado={item.id_estado_cita}
+                onPress={() =>
+                  router.push({
+                    pathname: "/DetalleCita",
+                    params: { idCita: item.id },
+                  })
+                }
+              />
+            ))}
           </View>
         )}
-      />
+      </ScrollView>
 
-      {/* 🐾 Menú inferior */}
       <MenuVet />
-    </View>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
+  safeArea: {
     flex: 1,
     backgroundColor: "#fff",
+  },
+  scrollContent: {
     paddingHorizontal: 16,
     paddingTop: 20,
+    paddingBottom: 100, // 👈 espacio suficiente para que no tape el menú
   },
   titulo: {
     fontSize: 20,
@@ -97,49 +127,7 @@ const styles = StyleSheet.create({
     textAlign: "center",
     color: "#000",
   },
-  card: {
-    flexDirection: "row",
-    backgroundColor: "#fff",
-    borderRadius: 12,
-    padding: 12,
-    marginBottom: 12,
-    shadowColor: "#000",
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 2,
-    alignItems: "center",
-  },
-  avatarPlaceholder: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
-    borderWidth: 2,
-    borderColor: "green",
-    justifyContent: "center",
-    alignItems: "center",
-    marginRight: 12,
-  },
-  info: {
-    flex: 1,
-  },
-  nombre: {
-    fontSize: 16,
-    fontWeight: "bold",
-    marginBottom: 4,
-  },
-  row: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginBottom: 2,
-  },
-  texto: {
-    fontSize: 14,
-    marginLeft: 4,
-  },
-  fecha: {
-    fontSize: 12,
-    marginLeft: 10,
-    color: "gray",
-  },
+  loaderContainer: { flex: 1, justifyContent: "center", alignItems: "center" },
+  loaderText: { marginTop: 10, color: "#666" },
+  noCitas: { textAlign: "center", color: "#555", fontSize: 16, marginTop: 20 },
 });
-

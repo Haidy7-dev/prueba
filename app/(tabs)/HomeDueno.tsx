@@ -10,10 +10,10 @@ import { EvilIcons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 
 
-// 🔸 Datos fijos de ofertas (por ahora manuales)
 const OFERTAS = [
   {
     id: 1,
+    id_veterinario: 1002234684, 
     titulo: "Oferta",
     descuento: "50% de descuento",
     descripcion: "En la pasta para las pulgas",
@@ -23,6 +23,7 @@ const OFERTAS = [
   },
   {
     id: 2,
+    id_veterinario: 1002234684, 
     titulo: "Oferta",
     descuento: "50% de descuento",
     descripcion: "En la pasta para las pulgas",
@@ -32,6 +33,7 @@ const OFERTAS = [
   },
   {
     id: 3,
+    id_veterinario: 1002234684, 
     titulo: "Oferta",
     descuento: "50% de descuento",
     descripcion: "En la pasta para las pulgas",
@@ -41,6 +43,7 @@ const OFERTAS = [
   },
   {
     id: 4,
+    id_veterinario: 1002234684, 
     titulo: "Oferta",
     descuento: "50% de descuento",
     descripcion: "En la pasta para las pulgas",
@@ -70,16 +73,12 @@ export default function HomeDueno() {
         "http://192.168.101.73:3000/api/veterinarios"
         //IP Salomé datos
         // "http://10.121.63.130:3000/api/veterinarios"
-
         //IP Haidy casa
         //"http://192.168.1.16:3000/api/veterinarios"
         //IP Haidy datos
         //"http://10.164.93.119:3000/api/veterinarios"
-
-        
-        );
+      );
       console.log("Veterinarios obtenidos:", response.data);
-
       setVeterinarios(response.data);
       setVeterinariosFiltrados(response.data);
     } catch (error) {
@@ -138,12 +137,25 @@ export default function HomeDueno() {
     setModalVisible(true);
   };
 
+  // 🔸 Cuando se presione “Ver perfil” dentro del modal
+  const handleVerPerfilOferta = (oferta: any) => {
+    if (oferta?.id_veterinario) {
+      router.push({
+        pathname: "./VerVeterinario",
+        params: { id: oferta.id_veterinario },
+      });
+      setModalVisible(false);
+    } else {
+      console.log("⚠️ Esta oferta no tiene un id_veterinario asignado");
+    }
+  };
+
   const handleVeterinarioPress = (veterinario: Veterinario) => {
-  router.push({
-    pathname: "./VerVeterinario",
-    params: { id: veterinario.id},
-  });
-};
+    router.push({
+      pathname: "./VerVeterinario",
+      params: { id: veterinario.id },
+    });
+  };
 
   // 🟢 Render
   return (
@@ -216,6 +228,7 @@ export default function HomeDueno() {
           visible={modalVisible}
           oferta={ofertaSeleccionada}
           onClose={() => setModalVisible(false)}
+          onVerPerfil={handleVerPerfilOferta} // 👈 se agrega esta prop
         />
 
         <MenuDueno />
@@ -255,7 +268,7 @@ const styles = StyleSheet.create({
         shadowRadius: 5,
       },
       android: {
-        elevation: 8, // sombra más notoria en Android
+        elevation: 8,
       },
     }),
   },
@@ -282,7 +295,7 @@ const styles = StyleSheet.create({
   },
   listaVeterinarios: {
     marginTop: 8,
-    marginBottom: 100, // Espacio para el menú inferior
+    marginBottom: 100,
   },
   loadingContainer: {
     alignItems: "center",

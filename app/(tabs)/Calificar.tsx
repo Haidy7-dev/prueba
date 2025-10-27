@@ -3,28 +3,45 @@ import Encabezado from "@/components/Encabezado";
 import MenuDueno from "@/components/MenuDueno";
 import { FontAwesome } from "@expo/vector-icons";
 import React, { useState } from "react";
-import { Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { Image, ScrollView, StyleSheet, Text, TouchableOpacity, View, Alert } from "react-native";
+import axios from "axios";
+import { useLocalSearchParams, useRouter } from "expo-router";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export default function CalificarScreen() {
-  // Estado para guardar la cantidad de estrellas seleccionadas (1 a 5)
   const [rating, setRating] = useState(0);
+  const { idCita } = useLocalSearchParams();
+  const router = useRouter();
+  const BASE_URL = "http://192.168.101.73:3000";
 
-  // Función para actualizar la calificación
-  const handleStarPress = (index: number) => {
-    setRating(index);
+  const handleCalificar = async () => {
+    try {
+      const id_usuario = await AsyncStorage.getItem("userId");
+      if (!id_usuario) {
+        Alert.alert("Error", "No se encontró el usuario logueado");
+        return;
+      }
+
+      await axios.post(`${BASE_URL}/api/calificaciones`, {
+        puntaje: rating,
+        id_cita: idCita,
+        id_usuario,
+      });
+
+      Alert.alert("✅", "¡Gracias por calificar!");
+      router.push("/AgendaDueno");
+    } catch (error) {
+      console.error("❌ Error al guardar calificación:", error);
+      Alert.alert("Error", "No se pudo guardar la calificación");
+    }
   };
 
   return (
     <View style={styles.container}>
-      {/* Contenido scrollable para evitar cortes en pantallas pequeñas */}
       <ScrollView contentContainerStyle={styles.scrollContainer}>
-        {/* Barra superior */}
         <Encabezado />
-
-        {/* Título */}
         <Text style={styles.title}>Califica al veterinario</Text>
 
-        {/* Cuadro verde con perritos y patita */}
         <View style={styles.cuadro}>
           <Image
             source={require("../../assets/images/navegacion/perritos.png")}
@@ -39,13 +56,11 @@ export default function CalificarScreen() {
           <Text style={styles.textoCuadro}>¿Cuál es tu calificación?</Text>
         </View>
 
-        {/* Texto de instrucción */}
         <Text style={styles.textoInstruccion}>Selecciona la cantidad de estrellas</Text>
 
-        {/* Estrellas */}
         <View style={styles.estrellasContainer}>
           {[1, 2, 3, 4, 5].map((index) => (
-            <TouchableOpacity key={index} onPress={() => handleStarPress(index)}>
+            <TouchableOpacity key={index} onPress={() => setRating(index)}>
               <FontAwesome
                 name={index <= rating ? "star" : "star-o"}
                 size={40}
@@ -56,41 +71,20 @@ export default function CalificarScreen() {
           ))}
         </View>
 
-        {/* Botón reutilizable */}
         <BotonGeneral
           title="Calificar"
-          onPress={() => alert(`Has calificado con ${rating} estrellas`)}
+          onPress={handleCalificar}
         />
       </ScrollView>
-      <MenuDueno active="Calificar" />
-      {/* Menú inferior fijo */}
+      <MenuDueno />
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#FFFFFF",
-  },
-  scrollContainer: {
-    alignItems: "center",
-    paddingBottom: 100, // espacio para el menú inferior
-  },
-  header: {
-    width: "100%",
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    paddingHorizontal: 20,
-    marginTop: 40,
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: "bold",
-    color: "#000",
-    marginTop: 25,
-  },
+  container: { flex: 1, backgroundColor: "#FFFFFF" },
+  scrollContainer: { alignItems: "center", paddingBottom: 100 },
+  title: { fontSize: 24, fontWeight: "bold", color: "#000", marginTop: 25 },
   cuadro: {
     backgroundColor: "#FFFFFF",
     borderColor: "#14841C",
@@ -102,35 +96,10 @@ const styles = StyleSheet.create({
     paddingVertical: 20,
     position: "relative",
   },
-  perritos: {
-    position: "absolute",
-    top: -100,
-    width: 220,
-    height: 120,
-  },
-  patita: {
-    position: "absolute",
-    top: 15,
-    width: 40,
-    height: 40,
-  },
-  textoCuadro: {
-    marginTop: 45,
-    fontSize: 18,
-    fontWeight: "500",
-    color: "#0000",
-  },
-  textoInstruccion: {
-    marginTop: 30,
-    fontSize: 16,
-    color: "#0000",
-  },
-  estrellasContainer: {
-    flexDirection: "row",
-    justifyContent: "center",
-    marginVertical: 20,
-  },
-  estrella: {
-    marginHorizontal: 8,
-  },
+  perritos: { position: "absolute", top: -100, width: 220, height: 120 },
+  patita: { position: "absolute", top: 15, width: 40, height: 40 },
+  textoCuadro: { marginTop: 45, fontSize: 18, fontWeight: "500", color: "#000" },
+  textoInstruccion: { marginTop: 30, fontSize: 16, color: "#000" },
+  estrellasContainer: { flexDirection: "row", justifyContent: "center", marginVertical: 20 },
+  estrella: { marginHorizontal: 8 },
 });

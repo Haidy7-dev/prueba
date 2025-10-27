@@ -1,8 +1,19 @@
 import Checkbox from "expo-checkbox";
 import { useRouter } from "expo-router";
 import React, { useState } from "react";
-import { Dimensions, Image, StyleSheet, Text, TextInput, TouchableOpacity, View, Alert } from "react-native";
+import {
+  Dimensions,
+  Image,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
+  Alert,
+  ActivityIndicator,
+} from "react-native";
 import axios from "axios";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const { width } = Dimensions.get("window");
 
@@ -13,55 +24,67 @@ const IniciarSesion1: React.FC = () => {
   const [password, setPassword] = useState("");
   const [cargando, setCargando] = useState(false);
 
+  const BASE_URL = "http://192.168.101.73:3000";
+
   const handleLogin = async () => {
     if (!email || !password) {
       Alert.alert("Campos incompletos", "Por favor ingresa tu correo y contraseña.");
       return;
     }
 
-    try {
-      setCargando(true);
+    setCargando(true);
 
-      // 🔹 Primero intenta iniciar sesión como veterinario
+    try {
+      let encontrado = false;
+
+      // 🔹 1️⃣ Buscar en veterinario_o_zootecnista
       try {
-        const vetRes = await axios.post("http://192.168.101.73:3000/api/loginVeterinario", {
+        const vetRes = await axios.post(`${BASE_URL}/api/loginVeterinario`, {
           correo_electronico: email,
           contrasena: password,
         });
 
         if (vetRes.data && vetRes.data.id) {
-          Alert.alert("Inicio exitoso", "Bienvenido veterinario y/o zootecnista 🩺");
-          router.push("./Iniciovet");
-          return;
+          await AsyncStorage.setItem("userId", vetRes.data.id.toString());
+          await AsyncStorage.setItem("userType", "veterinario");
+
+          Alert.alert("Inicio exitoso", "Bienvenido veterinario 🩺");
+          router.replace("./Iniciovet");
+          encontrado = true;
         }
       } catch (error: any) {
-        // Si el error es "Veterinario no encontrado", continúa con el siguiente login
-        if (error.response && error.response.data?.message !== "Veterinario no encontrado") {
-          console.error("Error en login veterinario:", error.response?.data || error.message);
-          Alert.alert("Error", "Ocurrió un problema al verificar el veterinario.");
-          return;
+        // No mostramos alerta aquí todavía, seguimos con usuario
+      }
+
+      // 🔹 2️⃣ Si no fue veterinario, buscar en usuario
+      if (!encontrado) {
+        try {
+          const userRes = await axios.post(`${BASE_URL}/api/loginUsuario`, {
+            correo_electronico: email,
+            contrasena: password,
+          });
+
+          if (userRes.data && userRes.data.id) {
+            await AsyncStorage.setItem("userId", userRes.data.id.toString());
+            await AsyncStorage.setItem("userType", "usuario");
+
+            Alert.alert("Inicio exitoso", "Bienvenido dueño 🐾");
+            router.replace("./HomeDueno");
+            encontrado = true;
+          }
+        } catch (error: any) {
+          // tampoco mostramos alerta aquí, esperamos hasta el final
         }
       }
 
-      // 🔹 Si no está en veterinarios, intenta como usuario dueño
-      try {
-        const duenoRes = await axios.post("http://192.168.101.73:3000/api/loginUsuario", {
-          correo_electronico: email,
-          contrasena: password,
-        });
-
-        if (duenoRes.data && duenoRes.data.id) {
-          Alert.alert("Inicio exitoso", "Bienvenido dueño 🐾");
-          router.push("./HomeDueno");
-          return;
-        } else {
-          Alert.alert("Error", "Correo o contraseña incorrectos.");
-        }
-      } catch (error: any) {
-        console.error("Error en login usuario:", error.response?.data || error.message);
-        Alert.alert("Error", "No se pudo conectar al servidor o usuario no encontrado.");
+      // 🔹 3️⃣ Si no se encontró en ninguna tabla
+      if (!encontrado) {
+        Alert.alert("Error", "Correo o contraseña incorrectos.");
       }
 
+    } catch (error) {
+      console.error("❌ Error general en login:", error);
+      Alert.alert("Error", "No se pudo conectar con el servidor.");
     } finally {
       setCargando(false);
     }
@@ -69,14 +92,12 @@ const IniciarSesion1: React.FC = () => {
 
   return (
     <View style={styles.container}>
-      {/* Logo */}
       <Image
         source={require("../../assets/images/navegacion/logo.png")}
         style={styles.logo}
         resizeMode="contain"
       />
 
-      {/* Formulario */}
       <View style={styles.form}>
         <Text style={styles.label}>Correo electrónico</Text>
         <TextInput
@@ -97,7 +118,6 @@ const IniciarSesion1: React.FC = () => {
           onChangeText={setPassword}
         />
 
-        {/* Recuérdame */}
         <View style={styles.optionsRow}>
           <View style={styles.rememberMe}>
             <Checkbox
@@ -109,27 +129,19 @@ const IniciarSesion1: React.FC = () => {
           </View>
         </View>
 
-        {/* Botón de inicio */}
-        <TouchableOpacity
-          style={styles.loginButton}
-          onPress={handleLogin}
-          disabled={cargando}
-        >
-          <Text style={styles.loginButtonText}>
-            {cargando ? "Verificando..." : "Iniciar sesión"}
-          </Text>
+        <TouchableOpacity style={styles.loginButton} onPress={handleLogin} disabled={cargando}>
+          {cargando ? (
+            <ActivityIndicator color="#479454" />
+          ) : (
+            <Text style={styles.loginButtonText}>Iniciar sesión</Text>
+          )}
         </TouchableOpacity>
 
-        {/* Botón de registro */}
-        <TouchableOpacity
-          style={styles.registerButton}
-          onPress={() => router.push("./ElegirRol")}
-        >
+        <TouchableOpacity style={styles.registerButton} onPress={() => router.push("./ElegirRol")}>
           <Text style={styles.registerButtonText}>Registrarse</Text>
         </TouchableOpacity>
       </View>
 
-      {/* Patitas inferiores */}
       <Image
         source={require("../../assets/images/navegacion/patas_abajo.png")}
         style={styles.paws}
@@ -142,26 +154,10 @@ const IniciarSesion1: React.FC = () => {
 export default IniciarSesion1;
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#fff",
-    alignItems: "center",
-    justifyContent: "space-between",
-  },
-  logo: {
-    marginTop: 50,
-    width: width * 0.6,
-    height: 170,
-  },
-  form: {
-    width: "80%",
-  },
-  label: {
-    fontWeight: "bold",
-    color: "#333",
-    fontSize: 14,
-    marginTop: 15,
-  },
+  container: { flex: 1, backgroundColor: "#fff", alignItems: "center", justifyContent: "space-between" },
+  logo: { marginTop: 50, width: width * 0.6, height: 170 },
+  form: { width: "80%" },
+  label: { fontWeight: "bold", color: "#333", fontSize: 14, marginTop: 15 },
   input: {
     borderWidth: 1,
     borderColor: "#6CBA79",
@@ -172,21 +168,9 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: "#333",
   },
-  optionsRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginTop: 15,
-  },
-  rememberMe: {
-    flexDirection: "row",
-    alignItems: "center",
-  },
-  rememberText: {
-    marginLeft: 6,
-    fontSize: 12,
-    color: "#333",
-  },
+  optionsRow: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginTop: 15 },
+  rememberMe: { flexDirection: "row", alignItems: "center" },
+  rememberText: { marginLeft: 6, fontSize: 12, color: "#333" },
   loginButton: {
     marginTop: 35,
     borderWidth: 1,
@@ -195,11 +179,7 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     alignItems: "center",
   },
-  loginButtonText: {
-    color: "#479454",
-    fontSize: 20,
-    fontWeight: "bold",
-  },
+  loginButtonText: { color: "#479454", fontSize: 20, fontWeight: "bold" },
   registerButton: {
     marginTop: 15,
     borderRadius: 10,
@@ -207,17 +187,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
     backgroundColor: "#479454",
   },
-  registerButtonText: {
-    color: "#fff",
-    fontSize: 20,
-    fontWeight: "bold",
-  },
-  paws: {
-    width: width,
-    height: 80,
-    marginBottom: 10,
-  },
+  registerButtonText: { color: "#fff", fontSize: 20, fontWeight: "bold" },
+  paws: { width: width, height: 80, marginBottom: 10 },
 });
-
-
-
