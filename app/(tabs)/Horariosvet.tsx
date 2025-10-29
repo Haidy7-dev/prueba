@@ -1,19 +1,19 @@
-import React, { useState, useEffect } from "react";
-import {View,Text,StyleSheet,ScrollView,TouchableOpacity,Alert,KeyboardAvoidingView,Platform,} from "react-native";
-import axios from "axios";
-import { useRouter } from "expo-router";
 import BotonGeneral from "@/components/BotonGeneral";
 import MenuVet from "@/components/MenuVet";
+import { BASE_URL } from "@/config/api";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import axios from "axios";
+import { useRouter } from "expo-router";
 import moment from "moment";
 import "moment/locale/es";
+import React, { useEffect, useState } from "react";
+import { Alert, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, TouchableOpacity, View, } from "react-native";
 
 moment.locale("es");
 
 export default function Horariosvet() {
   const router = useRouter();
-  const BASE_URL = "http://192.168.101.73:3000";
-
+  
   const diasSemana = [
     { nombre: "Lun", valor: "Lunes" },
     { nombre: "Mar", valor: "Martes" },
@@ -304,5 +304,3 @@ const styles = StyleSheet.create({
     fontSize: 14,
   },
 });
-
-

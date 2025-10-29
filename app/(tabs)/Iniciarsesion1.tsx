@@ -1,7 +1,12 @@
+import { BASE_URL } from "@/config/api";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import axios from "axios";
 import Checkbox from "expo-checkbox";
 import { useRouter } from "expo-router";
 import React, { useState } from "react";
 import {
+  ActivityIndicator,
+  Alert,
   Dimensions,
   Image,
   StyleSheet,
@@ -9,11 +14,7 @@ import {
   TextInput,
   TouchableOpacity,
   View,
-  Alert,
-  ActivityIndicator,
 } from "react-native";
-import axios from "axios";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const { width } = Dimensions.get("window");
 
@@ -23,8 +24,6 @@ const IniciarSesion1: React.FC = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [cargando, setCargando] = useState(false);
-
-  const BASE_URL = "http://192.168.101.73:3000";
 
   const handleLogin = async () => {
     if (!email || !password) {

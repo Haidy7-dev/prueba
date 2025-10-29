@@ -1,35 +1,31 @@
+import Encabezado from "@/components/Encabezado";
+import MascotaCard from "@/components/MascotaCard";
+import MenuDueno from "@/components/MenuDueno";
+import { BASE_URL } from "@/config/api";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import axios from "axios";
+import { useRouter } from "expo-router";
 import React, { useEffect, useState } from "react";
 import {
+  ActivityIndicator,
   SafeAreaView,
-  View,
-  Text,
-  TouchableOpacity,
   ScrollView,
   StyleSheet,
-  ActivityIndicator,
+  Text,
+  TouchableOpacity,
+  View,
 } from "react-native";
-import axios from "axios";
-import AsyncStorage from "@react-native-async-storage/async-storage";
-import MenuDueno from "../../components/MenuDueno";
-import { useRouter } from "expo-router";
-import MascotaCard from "@/components/MascotaCard";
-import Encabezado from "@/components/Encabezado";
 
 interface Cita {
   id: string;
   nombre_mascota: string;
   fecha: string;
   hora_inicio: string;
-  hora_fin: string;
-  tipo: string;
+  hora_finalizacion: string;
+  nombre_servicio: string;
   foto?: string;
-  id_estado_cita?: number | null;
-  id_servicio: string;
-  id_veterinario_o_zootecnista: string;
-  id_usuario: string;
-  calificada?: boolean; // viene del backend
-  esPendiente?: boolean;
-  culminada?: boolean;
+  id_estado_cita: number;
+  calificada?: boolean;
 }
 
 export default function AgendaDueno() {
@@ -38,7 +34,6 @@ export default function AgendaDueno() {
   const [tab, setTab] = useState<"pendientes" | "completadas">("pendientes");
 
   const router = useRouter();
-  const BASE_URL = "http://192.168.101.73:3000";
 
   const getCitas = async () => {
     try {
@@ -52,35 +47,11 @@ export default function AgendaDueno() {
       const response = await axios.get(`${BASE_URL}/api/citasDueno/${idDueno}`);
       const citasData: Cita[] = response.data;
 
-      const ahora = new Date();
-
-      // Procesar citas
-      const procesadas = citasData.map((cita) => {
-        const fechaHoraFin = new Date(`${cita.fecha}T${cita.hora_fin}`);
-        const esPendiente = fechaHoraFin > ahora && !cita.calificada;
-        const culminada = fechaHoraFin < ahora && !cita.calificada;
-
-        return {
-          ...cita,
-          esPendiente,
-          culminada,
-        };
-      });
-
-      setCitas(procesadas);
+      setCitas(citasData);
     } catch (error) {
-      console.error("❌ Error al obtener citas del dueño:", error);
+      console.error("❌ Error obteniendo citas:", error);
     } finally {
       setLoading(false);
-    }
-  };
-
-  const marcarComoCulminada = async (idCita: string) => {
-    try {
-      await axios.put(`${BASE_URL}/api/citasDueno/${idCita}/culmino`);
-      getCitas(); // refrescar
-    } catch (error) {
-      console.error("❌ Error al marcar cita como culminada:", error);
     }
   };
 
@@ -88,13 +59,18 @@ export default function AgendaDueno() {
     getCitas();
   }, []);
 
-  const citasPendientes = citas.filter(
-    (c) => c.esPendiente || c.culminada
-  );
-  const citasCompletadas = citas.filter((c) => c.calificada);
+  const marcarComoCulminada = async (id: string) => {
+    try {
+      await axios.put(`${BASE_URL}/api/citasDueno/estado/${id}`, { estado: 2 });
+      getCitas();
+    } catch (error) {
+      console.error("❌ Error al actualizar cita:", error);
+    }
+  };
 
-  const citasFiltradas =
-    tab === "pendientes" ? citasPendientes : citasCompletadas;
+  const citasPendientes = citas.filter((c) => c.id_estado_cita === 1);
+  const citasCompletadas = citas.filter((c) => c.id_estado_cita === 2);
+  const citasFiltradas = tab === "pendientes" ? citasPendientes : citasCompletadas;
 
   if (loading) {
     return (
@@ -109,18 +85,12 @@ export default function AgendaDueno() {
     <SafeAreaView style={styles.container}>
       <Encabezado />
 
-      {/* Tabs */}
       <View style={styles.tabContainer}>
         <TouchableOpacity
           style={[styles.tab, tab === "pendientes" && styles.tabActivo]}
           onPress={() => setTab("pendientes")}
         >
-          <Text
-            style={[
-              styles.tabTexto,
-              tab === "pendientes" && styles.tabTextoActivo,
-            ]}
-          >
+          <Text style={[styles.tabTexto, tab === "pendientes" && styles.tabTextoActivo]}>
             Citas pendientes
           </Text>
         </TouchableOpacity>
@@ -129,12 +99,7 @@ export default function AgendaDueno() {
           style={[styles.tab, tab === "completadas" && styles.tabActivo]}
           onPress={() => setTab("completadas")}
         >
-          <Text
-            style={[
-              styles.tabTexto,
-              tab === "completadas" && styles.tabTextoActivo,
-            ]}
-          >
+          <Text style={[styles.tabTexto, tab === "completadas" && styles.tabTextoActivo]}>
             Citas completadas
           </Text>
         </TouchableOpacity>
@@ -148,45 +113,61 @@ export default function AgendaDueno() {
         {citasFiltradas.length === 0 ? (
           <Text style={styles.noCitas}>No hay citas {tab}.</Text>
         ) : (
-          citasFiltradas.map((item) => (
-            <MascotaCard
-              key={item.id}
-              nombre={item.nombre_mascota}
-              hora={`${item.hora_inicio} - ${item.hora_fin}`}
-              fecha={item.fecha}
-              tipo={item.tipo}
-              foto={
-                item.foto
-                  ? { uri: item.foto }
-                  : require("../../assets/images/navegacion/foto.png")
-              }
-              estado={item.id_estado_cita}
-              onAccionPrincipal={
-                item.culminada && !item.calificada
-                  ? () => marcarComoCulminada(item.id)
-                  : undefined
-              }
-              textoAccionPrincipal="Culminó"
-              colorAccionPrincipal="#479454"
-              onAccionSecundaria={
-                item.culminada
-                  ? () =>
-                      router.push({
-                        pathname: "/Calificar",
-                        params: {
-                          id: item.id,
-                          idServicio: item.id_servicio,
-                          idVet: item.id_veterinario_o_zootecnista,
+          citasFiltradas.map((item) => {
+            const ahora = new Date();
+            const horaFin = new Date(`${item.fecha}T${item.hora_finalizacion}`);
+            const esPasada = horaFin < ahora;
+
+            return (
+              <MascotaCard
+                key={item.id}
+                nombre={item.nombre_mascota}
+                hora={`${item.hora_inicio} - ${item.hora_finalizacion}`}
+                fecha={new Date(item.fecha).toLocaleDateString("es-CO")}
+                tipo={item.nombre_servicio}
+                foto={
+                  item.foto
+                    ? { uri: item.foto }
+                    : require("../../assets/images/navegacion/foto.png")
+                }
+                botones={
+                  tab === "pendientes"
+                    ? [
+                        {
+                          texto: "Culminó",
+                          color: esPasada ? "#479454" : "#ccc",
+                          onPress: esPasada
+                            ? () => marcarComoCulminada(item.id)
+                            : undefined,
                         },
-                      })
-                  : undefined
-              }
-              textoAccionSecundaria={
-                item.culminada ? "Calificar" : undefined
-              }
-              colorAccionSecundaria="#6CBA79"
-            />
-          ))
+                        {
+                          texto: "Calificar",
+                          color: esPasada ? "#6CBA79" : "#ccc",
+                          onPress: esPasada
+                            ? () =>
+                                router.push({
+                                  pathname: "/Calificar",
+                                  params: {
+                                    id: item.id,
+                                  },
+                                })
+                            : undefined,
+                        },
+                      ]
+                    : []
+                }
+                onPress={
+                  tab === "completadas"
+                    ? () =>
+                        router.push({
+                          pathname: "/DetalleCita",
+                          params: { id: item.id },
+                        })
+                    : undefined
+                }
+              />
+            );
+          })
         )}
       </ScrollView>
 
@@ -208,10 +189,7 @@ const styles = StyleSheet.create({
   },
   tabContainer: {
     flexDirection: "row",
-    borderBottomWidth: 1,
-    borderColor: "#7BBD92",
     marginTop: 10,
-    marginHorizontal: 0,
   },
   tab: {
     flex: 1,
@@ -219,17 +197,8 @@ const styles = StyleSheet.create({
     alignItems: "center",
     borderWidth: 1,
     borderColor: "#7BBD92",
-    backgroundColor: "#fff",
   },
-  tabActivo: {
-    backgroundColor: "#7BBD92",
-  },
-  tabTexto: {
-    fontSize: 16,
-    fontWeight: "600",
-    color: "#000",
-  },
-  tabTextoActivo: {
-    color: "#fff",
-  },
+  tabActivo: { backgroundColor: "#7BBD92" },
+  tabTexto: { fontSize: 16, fontWeight: "600", color: "#000" },
+  tabTextoActivo: { color: "#fff" },
 });

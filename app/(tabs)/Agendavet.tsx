@@ -1,19 +1,20 @@
+import Encabezado from "@/components/Encabezado";
+import MascotaCard from "@/components/MascotaCard";
+import MenuVet from "@/components/MenuVet";
+import { BASE_URL } from "@/config/api";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import axios from "axios";
+import { useRouter } from "expo-router";
 import React, { useEffect, useState } from "react";
 import {
+  ActivityIndicator,
   SafeAreaView,
-  View,
-  Text,
-  TouchableOpacity,
   ScrollView,
   StyleSheet,
-  ActivityIndicator,
+  Text,
+  TouchableOpacity,
+  View,
 } from "react-native";
-import axios from "axios";
-import AsyncStorage from "@react-native-async-storage/async-storage";
-import Encabezado from "@/components/Encabezado";
-import MenuVet from "@/components/MenuVet";
-import MascotaCard from "@/components/MascotaCard";
-import { useRouter } from "expo-router";
 
 interface Cita {
   id: string;
@@ -23,17 +24,16 @@ interface Cita {
   hora_finalizacion: string;
   servicio: string;
   foto?: string;
-  id_estado_cita: number | null;
-  esPasada?: boolean; //
+  id_estado_cita: number;
+  esPasada?: boolean;
 }
 
-export default function Agendavet() {
+export default function AgendaVet() {
   const [citas, setCitas] = useState<Cita[]>([]);
   const [loading, setLoading] = useState(true);
   const [tab, setTab] = useState<"pasadas" | "futuras">("pasadas");
 
   const router = useRouter();
-  const BASE_URL = "http://192.168.101.73:3000";
 
   const getCitas = async () => {
     try {
@@ -45,20 +45,16 @@ export default function Agendavet() {
       }
 
       const response = await axios.get(`${BASE_URL}/api/citasVeterinario/${idVet}`);
-
       const citasData: Cita[] = response.data;
 
-      // 🔹 Separar citas por fecha y hora actual
       const ahora = new Date();
-      const citasSeparadas = citasData.map((cita) => {
+
+      const citasProcesadas = citasData.map((cita) => {
         const fechaHoraInicio = new Date(`${cita.fecha}T${cita.hora_inicio}`);
-        return {
-          ...cita,
-          esPasada: fechaHoraInicio < ahora,
-        };
+        return { ...cita, esPasada: fechaHoraInicio < ahora };
       });
 
-      setCitas(citasSeparadas);
+      setCitas(citasProcesadas);
     } catch (error) {
       console.error("❌ Error al obtener citas:", error);
     } finally {
@@ -75,7 +71,7 @@ export default function Agendavet() {
       await axios.put(`${BASE_URL}/api/citasVeterinario/${idCita}/estado`, {
         estado,
       });
-      getCitas(); // Refrescar citas
+      getCitas();
     } catch (error) {
       console.error("❌ Error al actualizar estado:", error);
     }
@@ -98,15 +94,12 @@ export default function Agendavet() {
     <SafeAreaView style={styles.container}>
       <Encabezado />
 
-      {/* 🔹 Pestañas de navegación */}
       <View style={styles.tabContainer}>
         <TouchableOpacity
           style={[styles.tab, tab === "pasadas" && styles.tabActivo]}
           onPress={() => setTab("pasadas")}
         >
-          <Text
-            style={[styles.tabTexto, tab === "pasadas" && styles.tabTextoActivo]}
-          >
+          <Text style={[styles.tabTexto, tab === "pasadas" && styles.tabTextoActivo]}>
             Citas pasadas
           </Text>
         </TouchableOpacity>
@@ -115,15 +108,12 @@ export default function Agendavet() {
           style={[styles.tab, tab === "futuras" && styles.tabActivo]}
           onPress={() => setTab("futuras")}
         >
-          <Text
-            style={[styles.tabTexto, tab === "futuras" && styles.tabTextoActivo]}
-          >
+          <Text style={[styles.tabTexto, tab === "futuras" && styles.tabTextoActivo]}>
             Citas futuras
           </Text>
         </TouchableOpacity>
       </View>
 
-      {/* 🔹 Listado de citas */}
       <ScrollView
         style={{ flex: 1 }}
         contentContainerStyle={styles.scrollContent}
@@ -137,14 +127,31 @@ export default function Agendavet() {
               key={item.id}
               nombre={item.nombreMascota}
               hora={`${item.hora_inicio} - ${item.hora_finalizacion}`}
-              fecha={item.fecha}
+              fecha={new Date(item.fecha).toLocaleDateString("es-CO")}
               tipo={item.servicio}
               foto={
                 item.foto
                   ? { uri: item.foto }
                   : require("../../assets/images/navegacion/foto.png")
               }
-              estado={item.id_estado_cita}
+              botones={
+                tab === "pasadas"
+                  ? [
+                      {
+                        texto: "Culminó",
+                        color:
+                          item.id_estado_cita === 2 ? "#479454" : "#ccc",
+                        onPress: () => actualizarEstado(item.id, 2),
+                      },
+                      {
+                        texto: "No asistió",
+                        color:
+                          item.id_estado_cita === 3 ? "#C94A4A" : "#ccc",
+                        onPress: () => actualizarEstado(item.id, 3),
+                      },
+                    ]
+                  : []
+              }
               onPress={
                 tab === "futuras"
                   ? () =>
@@ -154,18 +161,6 @@ export default function Agendavet() {
                       })
                   : undefined
               }
-              onCulmino={
-                tab === "pasadas"
-                  ? () => actualizarEstado(item.id, 2) // Completada
-                  : undefined
-              }
-              onAccionSecundaria={
-                tab === "pasadas"
-                  ? () => actualizarEstado(item.id, 3) // Cancelada
-                  : undefined
-              }
-              textoAccionSecundaria="No asistió"
-              colorAccionSecundaria="#555"
             />
           ))
         )}
@@ -178,26 +173,18 @@ export default function Agendavet() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: "#fff" },
-
   loaderContainer: { flex: 1, justifyContent: "center", alignItems: "center" },
   loaderText: { marginTop: 10, color: "#666" },
-
   scrollContent: { padding: 16, paddingBottom: 100 },
-
   noCitas: {
     textAlign: "center",
     color: "#555",
     fontSize: 16,
     marginTop: 20,
   },
-
-  // 🔹 Estilos pestañas
   tabContainer: {
     flexDirection: "row",
-    borderBottomWidth: 1,
-    borderColor: "#7BBD92",
     marginTop: 10,
-    marginHorizontal: 0,
   },
   tab: {
     flex: 1,
@@ -205,17 +192,8 @@ const styles = StyleSheet.create({
     alignItems: "center",
     borderWidth: 1,
     borderColor: "#7BBD92",
-    backgroundColor: "#fff",
   },
-  tabActivo: {
-    backgroundColor: "#7BBD92",
-  },
-  tabTexto: {
-    fontSize: 16,
-    fontWeight: "600",
-    color: "#000",
-  },
-  tabTextoActivo: {
-    color: "#fff",
-  },
+  tabActivo: { backgroundColor: "#7BBD92" },
+  tabTexto: { fontSize: 16, fontWeight: "600", color: "#000" },
+  tabTextoActivo: { color: "#fff" },
 });

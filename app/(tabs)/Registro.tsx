@@ -1,19 +1,10 @@
+import { BASE_URL } from "@/config/api";
 import { Ionicons } from "@expo/vector-icons";
-import {
-  ScrollView,
-  StyleSheet,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
-  Platform,
-  Alert,
-  ActivityIndicator,
-} from "react-native";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
+import axios from "axios";
 import { useRouter } from "expo-router";
 import React, { useState } from "react";
-import axios from "axios";
+import { ActivityIndicator, Alert, Platform, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View, } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import BotonGeneral from "../../components/BotonGeneral";
 
 export default function RegistroUsuario() {
@@ -58,7 +49,7 @@ export default function RegistroUsuario() {
 
     setLoading(true);
     try {
-      const response = await axios.post("http://192.168.101.73:3000/api/usuario", form);
+      const response = await axios.post(`${BASE_URL}/api/usuario`, form);
       console.log("✅ Usuario guardado:", response.data);
       Alert.alert("Éxito", "Usuario registrado correctamente.");
       router.push("/HomeDueno");
@@ -137,5 +128,3 @@ const styles = StyleSheet.create({
   stepperControl: { flexDirection: "row", alignItems: "center" },
   stepperValue: { fontSize: 18, fontWeight: "bold", color: "#555", marginHorizontal: 10, minWidth: 20, textAlign: "center" },
 });
-
-

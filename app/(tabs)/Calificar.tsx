@@ -1,19 +1,19 @@
 import BotonGeneral from "@/components/BotonGeneral";
 import Encabezado from "@/components/Encabezado";
 import MenuDueno from "@/components/MenuDueno";
+import { BASE_URL } from "@/config/api";
 import { FontAwesome } from "@expo/vector-icons";
-import React, { useState } from "react";
-import { Image, ScrollView, StyleSheet, Text, TouchableOpacity, View, Alert } from "react-native";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import axios from "axios";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import AsyncStorage from "@react-native-async-storage/async-storage";
+import React, { useState } from "react";
+import { Alert, Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 
 export default function CalificarScreen() {
   const [rating, setRating] = useState(0);
   const { idCita } = useLocalSearchParams();
   const router = useRouter();
-  const BASE_URL = "http://192.168.101.73:3000";
-
+  
   const handleCalificar = async () => {
     try {
       const id_usuario = await AsyncStorage.getItem("userId");

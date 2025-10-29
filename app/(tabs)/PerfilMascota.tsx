@@ -1,16 +1,17 @@
-import MenuDueno from "@/components/MenuDueno";
 import BotonGeneral from "@/components/BotonGeneral";
+import MenuDueno from "@/components/MenuDueno";
+import { BASE_URL } from "@/config/api";
 import { Feather } from "@expo/vector-icons";
-import * as ImagePicker from "expo-image-picker";
-import axios from "axios";
-import React, { useEffect, useState } from "react";
-import { Image,ScrollView,StyleSheet,Text,TextInput,TouchableOpacity,View,Alert,KeyboardAvoidingView,Platform,ActivityIndicator,} from "react-native";
 import { Picker } from "@react-native-picker/picker";
+import axios from "axios";
+import * as ImagePicker from "expo-image-picker";
 import { useLocalSearchParams } from "expo-router";
+import React, { useEffect, useState } from "react";
+import { ActivityIndicator, Alert, Image, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View, } from "react-native";
 
 export default function PerfilMascota() {
-  const { idMascota } = useLocalSearchParams(); // Debe recibirse como idMascota desde la navegación
-  console.log("🟢 ID recibido:", idMascota);
+  const { id } = useLocalSearchParams(); // Debe recibirse como idMascota desde la navegación
+  console.log("🟢 ID recibido:", id);
 
   // Estados
   const [fotoPerfil, setFotoPerfil] = useState<string | null>(null);
@@ -24,7 +25,7 @@ export default function PerfilMascota() {
   // --- OBTENER RAZAS ---
   const getRazas = async () => {
     try {
-      const response = await axios.get("http://192.168.101.73:3000/api/razas");
+      const response = await axios.get(`${BASE_URL}/api/razas`);
       setRazas(response.data);
     } catch (error) {
       console.log("❌ Error al obtener las razas:", error);
@@ -34,15 +35,13 @@ export default function PerfilMascota() {
   // --- OBTENER PERFIL DE LA MASCOTA ---
   const getPerfilMascota = async () => {
     try {
-      if (!idMascota) {
-        console.log("⚠️ No se recibió idMascota");
+      if (!id) {
+        console.log("⚠️ No se recibió id");
         setLoading(false);
         return;
       }
 
-      const response = await axios.get(
-        `http://192.168.101.73:3000/api/perfilMascota/${idMascota}`
-      );
+      const response = await axios.get(`${BASE_URL}/api/getMascota/${id}`);
 
       console.log("📦 Respuesta del backend:", response.data);
 
@@ -72,7 +71,7 @@ export default function PerfilMascota() {
   useEffect(() => {
     getRazas();
     getPerfilMascota();
-  }, [idMascota]);
+  }, [id]);
 
   // --- SELECCIONAR IMAGEN DE PERFIL ---
   const seleccionarImagen = async () => {
@@ -97,7 +96,7 @@ export default function PerfilMascota() {
   // --- GUARDAR INFORMACIÓN ---
   const manejarGuardar = async () => {
     try {
-      if (!idMascota) {
+      if (!id) {
         Alert.alert("Error", "No se encontró el ID de la mascota.");
         return;
       }
@@ -112,10 +111,7 @@ export default function PerfilMascota() {
 
       console.log("📤 Enviando datos al backend:", payload);
 
-      await axios.put(
-        `http://192.168.101.73:3000/api/perfilMascota/${idMascota}`,
-        payload
-      );
+      await axios.put(`${BASE_URL}/api/perfilMascota/${id}`, payload);
 
       Alert.alert("Éxito", "El perfil de tu mascota ha sido guardado correctamente.");
     } catch (error: any) {
@@ -231,7 +227,3 @@ const styles = StyleSheet.create({
   botonContainer: { width: "80%", marginTop: 20 },
   menuContainer: { marginTop: 10 },
 });
-
-
-
-

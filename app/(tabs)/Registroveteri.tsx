@@ -1,17 +1,10 @@
 import BotonGeneral from "@/components/BotonGeneral";
+import { BASE_URL } from "@/config/api";
 import { Picker } from "@react-native-picker/picker";
 import axios from "axios";
 import { useRouter } from "expo-router";
 import React, { useEffect, useState } from "react";
-import {
-  ScrollView,
-  StyleSheet,
-  Text,
-  TextInput,
-  View,
-  Platform,
-  Alert,
-} from "react-native";
+import { Alert, Platform, ScrollView, StyleSheet, Text, TextInput, View, } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 export default function RegistroVeteri() {
@@ -34,8 +27,6 @@ export default function RegistroVeteri() {
   // Listas de opciones
   const [Especializaciones, setEspecializaciones] = useState<any[]>([]);
   const [Servicios, setServicios] = useState<any[]>([]);
-
-  const BASE_URL = "http://192.168.101.73:3000";
 
   // --- Obtener especializaciones ---
   useEffect(() => {

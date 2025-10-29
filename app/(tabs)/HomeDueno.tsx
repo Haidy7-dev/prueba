@@ -1,13 +1,14 @@
+import { BASE_URL } from "@/config/api";
+import { EvilIcons } from "@expo/vector-icons";
 import axios from "axios";
+import { useRouter } from "expo-router";
 import React, { useEffect, useState } from "react";
-import {ActivityIndicator,FlatList,Platform,SafeAreaView,ScrollView,StatusBar,StyleSheet,Text,TextInput,View,} from "react-native";
+import { ActivityIndicator, FlatList, Platform, SafeAreaView, ScrollView, StatusBar, StyleSheet, Text, TextInput, View, } from "react-native";
 import Encabezado from "../../components/Encabezado";
 import MenuDueno from "../../components/MenuDueno";
 import ModalOferta from "../../components/ModalOferta";
 import TarjetaOferta from "../../components/TarjetaOferta";
 import TarjetaVeterinario, { Veterinario } from "../../components/TarjetaVeterinario";
-import { EvilIcons } from "@expo/vector-icons";
-import { useRouter } from "expo-router";
 
 
 const OFERTAS = [
@@ -68,16 +69,7 @@ export default function HomeDueno() {
   const getVeterinarios = async () => {
     try {
       setLoading(true);
-      const response = await axios.get(
-        //IP Salomé casa
-        "http://192.168.101.73:3000/api/veterinarios"
-        //IP Salomé datos
-        // "http://10.121.63.130:3000/api/veterinarios"
-        //IP Haidy casa
-        //"http://192.168.1.16:3000/api/veterinarios"
-        //IP Haidy datos
-        //"http://10.164.93.119:3000/api/veterinarios"
-      );
+      const response = await axios.get(`${BASE_URL}/api/veterinarios`);
       console.log("Veterinarios obtenidos:", response.data);
       setVeterinarios(response.data);
       setVeterinariosFiltrados(response.data);
@@ -98,21 +90,9 @@ export default function HomeDueno() {
     }
 
     try {
-      const response = await axios.get(
-        //IP Salomé casa
-        "http://192.168.101.73:3000/api/veterinarios/buscar"
-        //IP Salomé datos
-        // "http://10.121.63.130:3000/api/veterinarios/buscar"
-
-        //IP Haidy casa
-        //"http://192.168.1.16:3000/api/veterinarios/buscar"
-        //IP Haidy datos
-        //"http://10.164.93.119:3000/api/veterinarios/buscar"
-        ,
-        {
-          params: { query: texto },
-        }
-      );
+      const response = await axios.get(`${BASE_URL}/api/veterinarios/buscar`, {
+        params: { query: texto },
+      });
       console.log("Resultados de búsqueda:", response.data);
       setVeterinariosFiltrados(response.data);
     } catch (error) {

@@ -1,18 +1,12 @@
-import React, { useEffect, useState } from "react";
-import {
-  ScrollView,
-  StyleSheet,
-  Text,
-  View,
-  ActivityIndicator,
-  SafeAreaView,
-} from "react-native";
-import { useRouter } from "expo-router";
-import axios from "axios";
-import AsyncStorage from "@react-native-async-storage/async-storage";
-import MenuVet from "@/components/MenuVet";
 import Encabezado from "@/components/Encabezado";
 import MascotaCard from "@/components/MascotaCard";
+import MenuVet from "@/components/MenuVet";
+import { BASE_URL } from "@/config/api";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import axios from "axios";
+import { useRouter } from "expo-router";
+import React, { useEffect, useState } from "react";
+import { ActivityIndicator, SafeAreaView, ScrollView, StyleSheet, Text, View, } from "react-native";
 
 interface Cita {
   id: string;
@@ -32,8 +26,6 @@ export default function InicioVet() {
   const router = useRouter();
   const [citas, setCitas] = useState<Cita[]>([]);
   const [loading, setLoading] = useState(true);
-
-  const BASE_URL = "http://192.168.101.73:3000";
 
   // 🔹 Obtener citas del veterinario logueado
   const getCitas = async () => {

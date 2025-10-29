@@ -1,27 +1,18 @@
-import { useRouter } from "expo-router";
 import BotonGeneral from "@/components/BotonGeneral";
 import MenuVet from "@/components/MenuVet";
+import { BASE_URL } from "@/config/api";
 import { Feather } from "@expo/vector-icons";
-import { Picker } from "@react-native-picker/picker";
-import * as ImagePicker from "expo-image-picker";
-import axios from "axios";
-import React, { useState, useEffect } from "react";
-import {
-  ScrollView,
-  StyleSheet,
-  Text,
-  TextInput,
-  View,
-  Image,
-  TouchableOpacity,
-  Alert,
-} from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { Picker } from "@react-native-picker/picker";
+import axios from "axios";
+import * as ImagePicker from "expo-image-picker";
+import { useRouter } from "expo-router";
+import React, { useEffect, useState } from "react";
+import { Alert, Image, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View, } from "react-native";
 
 export default function PerfilVeterinario() {
   const router = useRouter();
-  const BASE_URL = "http://192.168.101.73:3000";
-
+  
   const [idVet, setIdVet] = useState<string | null>(null);
   const [nombre, setNombre] = useState("");
   const [correo, setCorreo] = useState("");
@@ -253,11 +244,3 @@ const styles = StyleSheet.create({
     fontStyle: "italic",
   },
 });
-
-
-
-
-
-
-
-

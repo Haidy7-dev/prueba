@@ -1,18 +1,13 @@
-import React, { useEffect, useState } from "react";
-import {
-  View,
-  StyleSheet,
-  Text,
-  ActivityIndicator,
-  ScrollView,
-} from "react-native";
-import { useLocalSearchParams } from "expo-router";
+import Encabezado from "@/components/Encabezado";
+import MenuDueno from "@/components/MenuDueno";
+import MenuVet from "@/components/MenuVet";
+import ResumenCitaCard from "@/components/ResumenCitaCard";
+import { BASE_URL } from "@/config/api";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import axios from "axios";
-import ResumenCitaCard from "@/components/ResumenCitaCard";
-import MenuVet from "@/components/MenuVet";
-import MenuDueno from "@/components/MenuDueno";
-import Encabezado from "@/components/Encabezado";
+import { useLocalSearchParams } from "expo-router";
+import React, { useEffect, useState } from "react";
+import { ActivityIndicator, ScrollView, StyleSheet, Text, View, } from "react-native";
 
 interface ResumenCita {
   id: number;
@@ -63,9 +58,7 @@ export default function DetalleCita() {
 
     const fetchResumen = async () => {
       try {
-        const response = await axios.get(
-          `http://192.168.101.73:3000/api/ResumenCitas/${idCita}`
-        );
+        const response = await axios.get(`${BASE_URL}/api/ResumenCitas/${idCita}`);
         setResumen(response.data);
       } catch (error) {
         console.error("❌ Error al cargar resumen de cita:", error);

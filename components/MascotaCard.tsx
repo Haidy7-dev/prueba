@@ -1,23 +1,27 @@
 import React from "react";
-import { View, Text, StyleSheet, Image, TouchableOpacity } from "react-native";
-import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
+import {
+  View,
+  Text,
+  Image,
+  TouchableOpacity,
+  StyleSheet,
+  ImageSourcePropType,
+} from "react-native";
+
+interface BotonAccion {
+  texto: string;
+  color: string;
+  onPress?: () => void;
+}
 
 interface MascotaCardProps {
   nombre: string;
   hora: string;
   fecha: string;
   tipo: string;
-  foto: any;
+  foto: ImageSourcePropType;
+  botones?: BotonAccion[];
   onPress?: () => void;
-  estado?: number | null;
-
-  // 🔹 Botón 1 (Culminó)
-  onCulmino?: () => void;
-
-  // 🔹 Botón 2 (puede ser "No asistió" o "Calificar")
-  onAccionSecundaria?: () => void;
-  textoAccionSecundaria?: string; // 👈 texto dinámico ("No asistió" o "Calificar")
-  colorAccionSecundaria?: string; // 👈 color del botón secundario
 }
 
 export default function MascotaCard({
@@ -26,141 +30,82 @@ export default function MascotaCard({
   fecha,
   tipo,
   foto,
+  botones = [],
   onPress,
-  estado,
-  onCulmino,
-  onAccionSecundaria,
-  textoAccionSecundaria = "Acción",
-  colorAccionSecundaria = "#555", // color por defecto
 }: MascotaCardProps) {
-  // --- Formateadores de fecha y hora ---
-  const formatFecha = (fechaStr: string) => {
-    try {
-      return new Date(fechaStr).toLocaleDateString("es-CO", {
-        day: "2-digit",
-        month: "short",
-        year: "numeric",
-      });
-    } catch {
-      return fechaStr;
-    }
-  };
-
-  const formatHora = (horaStr: string) => {
-    if (!horaStr.includes("-")) return horaStr;
-    const [inicio, fin] = horaStr.split(" - ");
-    const format = (h: string) =>
-      new Date(`1970-01-01T${h.trim()}`).toLocaleTimeString("es-CO", {
-        hour: "2-digit",
-        minute: "2-digit",
-        hour12: true,
-      });
-    return `${format(inicio)} - ${format(fin)}`;
-  };
-
   return (
-    <TouchableOpacity onPress={onPress} activeOpacity={0.9}>
-      <View style={styles.card}>
-        <Image source={foto} style={styles.avatar} />
-
-        <View style={styles.info}>
+    <TouchableOpacity
+      activeOpacity={onPress ? 0.8 : 1}
+      onPress={onPress}
+      style={styles.card}
+    >
+      <View style={styles.infoContainer}>
+        <Image source={foto} style={styles.foto} />
+        <View style={styles.textContainer}>
           <Text style={styles.nombre}>{nombre}</Text>
-
-          {/* Fecha */}
-          <View style={styles.row}>
-            <Ionicons name="time-outline" size={16} color="green" />
-            <Text style={styles.texto}>{formatHora(hora)}</Text>
-          </View>
-
-          <View style={styles.row}>
-            <Ionicons name="calendar-outline" size={16} color="green" />
-            <Text style={styles.texto}>{formatFecha(fecha)}</Text>
-          </View>
-
-          {/* Tipo de cita */}
-          <View style={styles.row}>
-            <MaterialCommunityIcons
-              name="stethoscope"
-              size={16}
-              color="#1C8D3D"
-            />
-            <Text style={styles.texto}>{tipo}</Text>
-          </View>
-
-          {/* Botones dinámicos */}
-          {(onCulmino || onAccionSecundaria) && (
-            <View style={styles.botonesRow}>
-              {onCulmino && (
-                <TouchableOpacity
-                  style={[styles.boton, { backgroundColor: "#14841C" }]}
-                  onPress={onCulmino}
-                >
-                  <Text style={styles.botonTexto}>Culminó</Text>
-                </TouchableOpacity>
-              )}
-
-              {onAccionSecundaria && (
-                <TouchableOpacity
-                  style={[
-                    styles.boton,
-                    { backgroundColor: colorAccionSecundaria },
-                  ]}
-                  onPress={onAccionSecundaria}
-                >
-                  <Text style={styles.botonTexto}>{textoAccionSecundaria}</Text>
-                </TouchableOpacity>
-              )}
-            </View>
-          )}
+          <Text style={styles.detalle}>⏰ {hora}</Text>
+          <Text style={styles.detalle}>📅 {fecha}</Text>
+          <Text style={styles.detalle}>🩺 {tipo}</Text>
         </View>
       </View>
+
+      {/* Botones dinámicos */}
+      {botones.length > 0 && (
+        <View style={styles.botonesContainer}>
+          {botones.map((boton, index) => (
+            <TouchableOpacity
+              key={index}
+              style={[styles.boton, { backgroundColor: boton.color }]}
+              onPress={boton.onPress}
+              disabled={!boton.onPress}
+            >
+              <Text style={styles.textoBoton}>{boton.texto}</Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+      )}
     </TouchableOpacity>
   );
 }
 
 const styles = StyleSheet.create({
   card: {
-    flexDirection: "row",
     backgroundColor: "#fff",
-    borderRadius: 15,
-    borderWidth: 1,
-    borderColor: "#ddd",
-    padding: 12,
+    borderRadius: 16,
+    padding: 16,
     marginBottom: 16,
-    alignItems: "center",
+    elevation: 3,
     shadowColor: "#000",
-    shadowOpacity: 0.15,
-    shadowRadius: 6,
-    shadowOffset: { width: 0, height: 3 },
-    elevation: 4,
+    shadowOpacity: 0.1,
+    shadowRadius: 5,
   },
-  avatar: {
-    width: 70,
-    height: 70,
-    borderRadius: 35,
-    marginRight: 12,
-  },
-  info: {
-    flex: 1,
-    justifyContent: "center",
-  },
-  nombre: {
-    fontSize: 17,
-    fontWeight: "bold",
-    marginBottom: 6,
-    color: "#000",
-  },
-  row: {
+  infoContainer: {
     flexDirection: "row",
     alignItems: "center",
-    marginBottom: 3,
   },
-  texto: {
-    fontSize: 14,
-    color: "#333",
-    marginLeft: 6,
+  foto: {
+    width: 80,
+    height: 80,
+    borderRadius: 12,
+    marginRight: 16,
   },
-  botonesRow: { flexDirection: "row", marginTop: 8, gap: 10 },
-  boton: { paddingVertical: 6, paddingHorizontal: 16, borderRadius: 15 },
-  botonTexto: { color: "#fff", fontSize: 13, fontWeight: "600" },
+  textContainer: { flex: 1 },
+  nombre: { fontSize: 18, fontWeight: "700", color: "#333" },
+  detalle: { color: "#666", marginTop: 4 },
+  botonesContainer: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginTop: 12,
+  },
+  boton: {
+    flex: 1,
+    paddingVertical: 8,
+    borderRadius: 10,
+    alignItems: "center",
+    marginHorizontal: 5,
+  },
+  textoBoton: {
+    color: "#fff",
+    fontWeight: "600",
+  },
 });

@@ -1,11 +1,12 @@
+import BotonGeneral from "@/components/BotonGeneral";
+import { BASE_URL } from "@/config/api";
 import { Feather } from "@expo/vector-icons";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import axios from "axios";
 import * as ImagePicker from "expo-image-picker";
 import React, { useEffect, useState } from "react";
-import {Alert,Image,ScrollView,StyleSheet,Text,TextInput,TouchableOpacity,View,} from "react-native";
+import { Alert, Image, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View, } from "react-native";
 import MenuDueno from "../../components/MenuDueno";
-import BotonGeneral from "@/components/BotonGeneral";
-import axios from "axios";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 
 // 🟢 Tipo del perfil de usuario
 type PerfilUsuario = {
@@ -22,8 +23,6 @@ type PerfilUsuario = {
 };
 
 export default function PerfilDueno() {
-  const BASE_URL = "http://192.168.101.73:3000";
-
   const [perfil, setPerfil] = useState<PerfilUsuario>({
     id: "",
     primer_nombre: "",
@@ -270,6 +269,3 @@ const styles = StyleSheet.create({
     color: "#333",
   },
 });
-
-
-
