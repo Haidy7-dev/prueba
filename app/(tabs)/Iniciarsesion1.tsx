@@ -24,6 +24,7 @@ const IniciarSesion1: React.FC = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [cargando, setCargando] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   const handleLogin = async () => {
     if (!email || !password) {
@@ -108,14 +109,22 @@ const IniciarSesion1: React.FC = () => {
         />
 
         <Text style={styles.label}>Contraseña</Text>
-        <TextInput
-          placeholder="123456"
-          secureTextEntry
-          style={styles.input}
-          placeholderTextColor="#9e9e9e"
-          value={password}
-          onChangeText={setPassword}
-        />
+        <View style={styles.passwordContainer}>
+          <TextInput
+            placeholder="123456"
+            secureTextEntry={!showPassword}
+            style={[styles.input, { borderWidth: 0, flex: 1 }]}
+            placeholderTextColor="#9e9e9e"
+            value={password}
+            onChangeText={setPassword}
+          />
+          <TouchableOpacity
+            style={styles.eyeButton}
+            onPress={() => setShowPassword(!showPassword)}
+          >
+            <Text style={styles.eyeText}>{showPassword ? "🙈" : "👁️"}</Text>
+          </TouchableOpacity>
+        </View>
 
         <View style={styles.optionsRow}>
           <View style={styles.rememberMe}>
@@ -188,4 +197,19 @@ const styles = StyleSheet.create({
   },
   registerButtonText: { color: "#fff", fontSize: 20, fontWeight: "bold" },
   paws: { width: width, height: 80, marginBottom: 10 },
+  passwordContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    borderWidth: 1,
+    borderColor: "#6CBA79",
+    borderRadius: 10,
+    marginTop: 5,
+  },
+  eyeButton: {
+    paddingHorizontal: 10,
+    paddingVertical: 12,
+  },
+  eyeText: {
+    fontSize: 18,
+  },
 });

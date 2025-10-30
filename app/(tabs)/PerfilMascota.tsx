@@ -18,6 +18,7 @@ export default function PerfilMascota() {
   const [nombre, setNombre] = useState("");
   const [peso, setPeso] = useState("");
   const [sexo, setSexo] = useState("");
+  const [edad, setEdad] = useState("");
   const [razaSeleccionada, setRazaSeleccionada] = useState("");
   const [razas, setRazas] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -25,7 +26,7 @@ export default function PerfilMascota() {
   // --- OBTENER RAZAS ---
   const getRazas = async () => {
     try {
-      const response = await axios.get(`${BASE_URL}/api/razas`);
+      const response = await axios.get(`${BASE_URL}/api/raza`);
       setRazas(response.data);
     } catch (error) {
       console.log("❌ Error al obtener las razas:", error);
@@ -41,7 +42,7 @@ export default function PerfilMascota() {
         return;
       }
 
-      const response = await axios.get(`${BASE_URL}/api/getMascota/${id}`);
+      const response = await axios.get(`${BASE_URL}/api/mascota/${id}`);
 
       console.log("📦 Respuesta del backend:", response.data);
 
@@ -58,8 +59,9 @@ export default function PerfilMascota() {
       setNombre(mascota.nombre || "");
       setPeso(mascota.peso ? mascota.peso.toString() : "");
       setSexo(mascota.sexo || "");
-      setRazaSeleccionada(mascota.raza || mascota.raza_id?.toString() || "");
-      setFotoPerfil(mascota.foto || mascota.imagen || null);
+      setEdad(mascota.edad ? mascota.edad.toString() : "");
+      setRazaSeleccionada(mascota.id_raza?.toString() || "");
+      setFotoPerfil(mascota.foto || null);
     } catch (error: any) {
       console.log("❌ Error al cargar perfil:", error.response?.data || error.message);
       Alert.alert("Error", "No se pudo cargar la información de la mascota.");
@@ -105,6 +107,7 @@ export default function PerfilMascota() {
         nombre,
         peso,
         sexo,
+        edad,
         raza: razaSeleccionada,
         foto: fotoPerfil,
       };
@@ -140,7 +143,7 @@ export default function PerfilMascota() {
             <Image
               source={
                 fotoPerfil
-                  ? { uri: fotoPerfil }
+                  ? { uri: `${BASE_URL}/pethub/${fotoPerfil}` }
                   : require("../../assets/images/navegacion/foto.png")
               }
               style={styles.avatar}
@@ -172,6 +175,14 @@ export default function PerfilMascota() {
             keyboardType="numeric"
           />
 
+          <Text style={styles.label}>Edad (años)</Text>
+          <TextInput
+            style={styles.input}
+            value={edad}
+            onChangeText={setEdad}
+            keyboardType="numeric"
+          />
+
           <Text style={styles.label}>Sexo</Text>
           <View style={styles.pickerContainer}>
             <Picker
@@ -179,8 +190,8 @@ export default function PerfilMascota() {
               onValueChange={(itemValue) => setSexo(itemValue)}
             >
               <Picker.Item label="Seleccione una opción" value="" />
-              <Picker.Item label="Macho" value="macho" />
-              <Picker.Item label="Hembra" value="hembra" />
+              <Picker.Item label="Macho" value="Macho" />
+              <Picker.Item label="Hembra" value="Hembra" />
             </Picker>
           </View>
 
@@ -192,7 +203,7 @@ export default function PerfilMascota() {
             >
               <Picker.Item label="Seleccione una raza" value="" />
               {razas.map((r: any) => (
-                <Picker.Item key={r.id_raza} label={r.nombre} value={r.nombre} />
+                <Picker.Item key={r.id_raza} label={r.nombre} value={r.id_raza.toString()} />
               ))}
             </Picker>
           </View>

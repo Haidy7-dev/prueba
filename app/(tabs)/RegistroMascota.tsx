@@ -109,7 +109,7 @@ export default function RegistroMascota() {
       console.log("Respuesta del servidor:", response.data);
 
       Alert.alert("Éxito", "Mascota registrada correctamente");
-      router.push("./PerfilMascota");
+      router.push("./MisMascotas");
     } catch (error: any) {
       console.error("Error al registrar mascota:", error);
       if (error.response) {
@@ -168,7 +168,7 @@ export default function RegistroMascota() {
 
       <BotonGeneral title="Guardar" onPress={handleGuardar} />
 
-      <TouchableOpacity onPress={() => router.push("./PerfilMascota")}>
+      <TouchableOpacity onPress={() => router.push("./MisMascotas")}>
         <Text style={styles.omitirText}>Omitir</Text>
       </TouchableOpacity>
 
