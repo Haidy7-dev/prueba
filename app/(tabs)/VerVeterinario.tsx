@@ -14,7 +14,30 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import { Calendar } from "react-native-calendars";
+import { Calendar, LocaleConfig } from "react-native-calendars";
+
+// Configurar locale español para el calendario
+LocaleConfig.locales['es'] = {
+  monthNames: [
+    'Enero',
+    'Febrero',
+    'Marzo',
+    'Abril',
+    'Mayo',
+    'Junio',
+    'Julio',
+    'Agosto',
+    'Septiembre',
+    'Octubre',
+    'Noviembre',
+    'Diciembre'
+  ],
+  monthNamesShort: ['Ene.', 'Feb.', 'Mar.', 'Abr.', 'May.', 'Jun.', 'Jul.', 'Ago.', 'Sep.', 'Oct.', 'Nov.', 'Dic.'],
+  dayNames: ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'],
+  dayNamesShort: ['Dom.', 'Lun.', 'Mar.', 'Mié.', 'Jue.', 'Vie.', 'Sáb.'],
+  today: 'Hoy'
+};
+LocaleConfig.defaultLocale = 'es';
 import BotonGeneral from "../../components/BotonGeneral";
 import Encabezado from "../../components/Encabezado";
 import MenuDueno from "../../components/MenuDueno";
@@ -38,8 +61,8 @@ const computeStars = (prom: number) => {
 function groupHorarios(horarios: any[]) {
   const dayOrder = [
     "Lunes",
-    "Martes",
     "Miércoles",
+    "Martes",
     "Jueves",
     "Viernes",
     "Sábado",
@@ -110,15 +133,46 @@ export default function VerVeterinario() {
     return estrellas;
   };
 
-  // 🔹 Generar lista de horarios de media en media hora
-  const generarHoras = () => {
-    const horas: string[] = [];
-    for (let h = 0; h < 24; h++) {
-      horas.push(`${String(h).padStart(2, "0")}:00`);
-      horas.push(`${String(h).padStart(2, "0")}:30`);
-    }
-    return horas;
+  // 🔹 Obtener días únicos del veterinario
+  const diasDisponibles = useMemo(() => {
+    const dias = new Set(horarios.map(h => h.dia_semana));
+    return Array.from(dias);
+  }, [horarios]);
+
+  // 🔹 Mapear día de la semana numérico a español
+  const getDiaSemana = (dateString: string) => {
+    const date = new Date(dateString);
+    const dias = ["Domingo", "Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado"];
+    return dias[date.getDay()];
   };
+
+  // 🔹 Generar horas válidas basadas en el día seleccionado
+  const generarHorasValidas = (selectedDate: string) => {
+    if (!selectedDate) return [];
+    const diaSeleccionado = getDiaSemana(selectedDate);
+    const horariosDelDia = horarios.filter(h => h.dia_semana === diaSeleccionado);
+    if (horariosDelDia.length === 0) return [];
+
+    const horas: string[] = [];
+    horariosDelDia.forEach(h => {
+      const [horaInicio, minInicio] = h.hora_inicio.split(':').map(Number);
+      const [horaFin, minFin] = h.hora_finalizacion.split(':').map(Number);
+      let current = horaInicio * 60 + minInicio;
+      const end = horaFin * 60 + minFin;
+      while (current < end) {
+        const hStr = String(Math.floor(current / 60)).padStart(2, '0');
+        const mStr = String(current % 60).padStart(2, '0');
+        horas.push(`${hStr}:${mStr}`);
+        current += 30;
+      }
+    });
+    return [...new Set(horas)].sort(); // Eliminar duplicados y ordenar
+  };
+
+  // 🔹 Resetear hora seleccionada cuando cambie la fecha
+  useEffect(() => {
+    setSelectedHour("");
+  }, [selectedDate]);
 
   // 🔹 Agendar cita
   const handleAgendar = async () => {
@@ -256,19 +310,39 @@ export default function VerVeterinario() {
 
         <View style={styles.contenedorTexto}>
           <Text style={styles.titulo}>Selecciona una fecha</Text>
-          <Calendar
-            minDate={todayStr}
-            onDayPress={(day) => setSelectedDate(day.dateString)}
-            markedDates={{
-              [selectedDate]: { selected: true, selectedColor: "#479454" },
-            }}
-            theme={{
-              selectedDayBackgroundColor: "#479454",
-              todayTextColor: "#479454",
-              arrowColor: "#479454",
-              monthTextColor: "#000",
-            }}
-          />
+          <View style={styles.calendarContainer}>
+            <Calendar
+              minDate={todayStr}
+              onDayPress={(day) => {
+                const diaSemana = getDiaSemana(day.dateString);
+                if (diasDisponibles.includes(diaSemana)) {
+                  setSelectedDate(day.dateString);
+                } else {
+                  Alert.alert("Fecha no disponible", "El veterinario no atiende en este día.");
+                }
+              }}
+              markedDates={{
+                [selectedDate]: { selected: true, selectedColor: "#479454" },
+              }}
+              theme={{
+                selectedDayBackgroundColor: "#479454",
+                todayTextColor: "#479454",
+                arrowColor: "#479454",
+                monthTextColor: "#000",
+                textDayFontSize: 16,
+                textMonthFontSize: 18,
+                textDayHeaderFontSize: 14,
+                'stylesheet.calendar.header': {
+                  week: {
+                    marginTop: 5,
+                    flexDirection: 'row',
+                    justifyContent: 'space-between'
+                  }
+                }
+              }}
+              style={styles.calendar}
+            />
+          </View>
         </View>
 
         <View style={{ paddingHorizontal: 16 }}>
@@ -281,7 +355,7 @@ export default function VerVeterinario() {
           showsHorizontalScrollIndicator={false}
           style={styles.horasScroll}
         >
-          {generarHoras().map((hora, index) => (
+          {generarHorasValidas(selectedDate).map((hora, index) => (
             <TouchableOpacity
               key={index}
               onPress={() => setSelectedHour(hora)}
@@ -342,4 +416,16 @@ const styles = StyleSheet.create({
   horaSeleccionada: { backgroundColor: "#479454", borderColor: "#479454" },
   horaTexto: { color: "#000" },
   horaTextoSeleccionada: { color: "#fff", fontWeight: "bold" },
+  calendarContainer: {
+    borderRadius: 10,
+    overflow: 'hidden',
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+  },
+  calendar: {
+    borderRadius: 10,
+  },
 });

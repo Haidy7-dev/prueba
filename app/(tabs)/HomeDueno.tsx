@@ -3,7 +3,7 @@ import { EvilIcons } from "@expo/vector-icons";
 import axios from "axios";
 import { useRouter } from "expo-router";
 import React, { useEffect, useState } from "react";
-import { ActivityIndicator, FlatList, Platform, SafeAreaView, ScrollView, StatusBar, StyleSheet, Text, TextInput, View, } from "react-native";
+import { ActivityIndicator, Alert, FlatList, Platform, SafeAreaView, ScrollView, StatusBar, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
 import Encabezado from "../../components/Encabezado";
 import MenuDueno from "../../components/MenuDueno";
 import ModalOferta from "../../components/ModalOferta";
@@ -62,6 +62,8 @@ export default function HomeDueno() {
   const [busqueda, setBusqueda] = useState<string>("");
   const [modalVisible, setModalVisible] = useState(false);
   const [ofertaSeleccionada, setOfertaSeleccionada] = useState<any>(null);
+
+
 
   const router = useRouter();
 
@@ -137,6 +139,8 @@ export default function HomeDueno() {
     });
   };
 
+
+
   // 🟢 Render
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -199,6 +203,8 @@ export default function HomeDueno() {
               ))}
             </View>
           )}
+
+
         </ScrollView>
 
         {/* 🟢 Modal de oferta */}
@@ -208,6 +214,8 @@ export default function HomeDueno() {
           onClose={() => setModalVisible(false)}
           onVerPerfil={handleVerPerfilOferta} // 👈 se agrega esta prop
         />
+
+
 
         <MenuDueno />
       </View>
@@ -295,4 +303,5 @@ const styles = StyleSheet.create({
     color: "#666",
     textAlign: "center",
   },
+
 });
