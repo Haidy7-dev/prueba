@@ -18,7 +18,7 @@ interface Mascota {
 const PetCard = ({ mascota, onPress }: { mascota: Mascota; onPress: () => void }) => (
   <TouchableOpacity style={styles.card} onPress={onPress}>
     <Image 
-      source={mascota.foto ? { uri: `${BASE_URL}/pethub/`+ mascota.foto } : require('../../assets/images/navegacion/foto.png')} 
+      source={mascota.foto ? { uri: `${BASE_URL}/pethub/`+ mascota.foto } : require('../../assets/images/navegacion/foto1.png')} 
       style={styles.petImage} 
     />
     <Text style={styles.petName}>{mascota.nombre}</Text>

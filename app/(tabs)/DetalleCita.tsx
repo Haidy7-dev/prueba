@@ -7,7 +7,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import axios from "axios";
 import { useLocalSearchParams } from "expo-router";
 import React, { useEffect, useState } from "react";
-import { ActivityIndicator, ScrollView, StyleSheet, Text, View, } from "react-native";
+import { ActivityIndicator, Alert, ScrollView, StyleSheet, Text, View } from "react-native";
 
 interface ResumenCita {
   id: number;
@@ -39,6 +39,11 @@ export default function DetalleCita() {
   const [loading, setLoading] = useState(true);
   const [userType, setUserType] = useState<string | null>(null);
 
+  // Show alert on screen load
+  useEffect(() => {
+    Alert.alert("Navegación Exitosa", `Has llegado a DetalleCita para la cita con ID: ${idCita}`);
+  }, [idCita]);
+
   // 🧩 Obtener tipo de usuario
   useEffect(() => {
     const obtenerTipoUsuario = async () => {
@@ -58,7 +63,7 @@ export default function DetalleCita() {
 
     const fetchResumen = async () => {
       try {
-        const response = await axios.get(`${BASE_URL}/api/ResumenCitas/${idCita}`);
+        const response = await axios.get(`${BASE_URL}/api/resumencitas/${idCita}`);
         setResumen(response.data);
       } catch (error) {
         console.error("❌ Error al cargar resumen de cita:", error);
@@ -91,8 +96,6 @@ export default function DetalleCita() {
     <View style={{ flex: 1, backgroundColor: "#fff" }}>
       <Encabezado />
       <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
-      
-
         <ResumenCitaCard
           nombre_mascota={resumen.nombre_mascota}
           sexo_mascota={resumen.sexo_mascota}
@@ -112,7 +115,6 @@ export default function DetalleCita() {
         />
       </ScrollView>
 
-      {/* 🧩 Mostrar menú según el tipo de usuario */}
       {userType === "veterinario" ? <MenuVet /> : null}
       {userType === "usuario" ? <MenuDueno /> : null}
     </View>
@@ -124,9 +126,7 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "#fff",
     paddingHorizontal: 16,
-  
   },
-
   loaderContainer: {
     flex: 1,
     justifyContent: "center",

@@ -1,3 +1,4 @@
+import { useRouter } from "expo-router";
 import React from "react";
 import {
   View,
@@ -12,6 +13,7 @@ interface BotonAccion {
   texto: string;
   color: string;
   onPress?: () => void;
+  disabled?: boolean;
 }
 
 interface MascotaCardProps {
@@ -21,7 +23,9 @@ interface MascotaCardProps {
   tipo: string;
   foto: ImageSourcePropType;
   botones?: BotonAccion[];
-  onPress?: () => void;
+  // New props for internal navigation
+  isCompleted?: boolean;
+  appointmentId?: string;
 }
 
 export default function MascotaCard({
@@ -31,13 +35,26 @@ export default function MascotaCard({
   tipo,
   foto,
   botones = [],
-  onPress,
+  isCompleted,
+  appointmentId,
 }: MascotaCardProps) {
+  const router = useRouter();
+
+  const handleCardPress = () => {
+    if (isCompleted && appointmentId) {
+      router.push({
+        pathname: "/DetalleCita",
+        params: { idCita: appointmentId },
+      });
+    }
+  };
+
   return (
     <TouchableOpacity
-      activeOpacity={onPress ? 0.8 : 1}
-      onPress={onPress}
+      activeOpacity={isCompleted ? 0.8 : 1}
+      onPress={handleCardPress}
       style={styles.card}
+      disabled={!isCompleted}
     >
       <View style={styles.infoContainer}>
         <Image source={foto} style={styles.foto} />
@@ -49,7 +66,6 @@ export default function MascotaCard({
         </View>
       </View>
 
-      {/* Botones dinámicos */}
       {botones.length > 0 && (
         <View style={styles.botonesContainer}>
           {botones.map((boton, index) => (
@@ -57,7 +73,7 @@ export default function MascotaCard({
               key={index}
               style={[styles.boton, { backgroundColor: boton.color }]}
               onPress={boton.onPress}
-              disabled={!boton.onPress}
+              disabled={boton.disabled || !boton.onPress}
             >
               <Text style={styles.textoBoton}>{boton.texto}</Text>
             </TouchableOpacity>

@@ -144,7 +144,7 @@ export default function PerfilMascota() {
               source={
                 fotoPerfil
                   ? { uri: `${BASE_URL}/pethub/${fotoPerfil}` }
-                  : require("../../assets/images/navegacion/foto.png")
+                  : require("../../assets/images/navegacion/foto1.png")
               }
               style={styles.avatar}
             />

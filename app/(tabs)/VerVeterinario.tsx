@@ -246,7 +246,7 @@ export default function VerVeterinario() {
             {servicios.map((s: any) => (
               <Picker.Item
                 key={s.id}
-                label={`${s.nombre} (${s.duracion} min)`}
+                label={`${s.nombre} (${s.duracion} min) - ${s.precio}`}
                 value={s.id}
               />
             ))}

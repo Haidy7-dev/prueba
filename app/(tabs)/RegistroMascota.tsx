@@ -100,12 +100,12 @@ export default function RegistroMascota() {
         id_usuario: parseInt(id_usuario),
         id_especie: parseInt(id_especie),
         id_raza: parseInt(id_raza),
-        foto: "foto.png", // valor por defecto según tu tabla
+        foto: "foto1.png", // valor por defecto según tu tabla
       };
 
       console.log("Enviando datos de mascota:", mascota);
 
-      const response = await axios.post(`${BASE_URL}/api/mascota`, mascota);
+      const response = await axios.post(`${BASE_URL}/api/mascotas`, mascota);
       console.log("Respuesta del servidor:", response.data);
 
       Alert.alert("Éxito", "Mascota registrada correctamente");

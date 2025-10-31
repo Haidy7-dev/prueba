@@ -25,7 +25,7 @@ export default function CalificarScreen() {
       await axios.post(`${BASE_URL}/api/calificaciones`, {
         puntaje: rating,
         id_cita: idCita,
-        id_usuario,
+        id_usuario: id_usuario,
       });
 
       Alert.alert("✅", "¡Gracias por calificar!");

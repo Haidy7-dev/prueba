@@ -4,10 +4,11 @@ import MenuDueno from "@/components/MenuDueno";
 import { BASE_URL } from "@/config/api";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import axios from "axios";
-import { useRouter } from "expo-router";
-import React, { useEffect, useState } from "react";
+import { useFocusEffect, useRouter } from "expo-router";
+import React, { useCallback, useState } from "react";
 import {
   ActivityIndicator,
+  Alert,
   SafeAreaView,
   ScrollView,
   StyleSheet,
@@ -25,7 +26,8 @@ interface Cita {
   nombre_servicio: string;
   foto?: string;
   id_estado_cita: number;
-  calificada?: boolean;
+  calificada: number; // 1 if rated, 0 if not
+  id_veterinario_o_zootecnista: string;
 }
 
 export default function AgendaDueno() {
@@ -35,7 +37,8 @@ export default function AgendaDueno() {
 
   const router = useRouter();
 
-  const getCitas = async () => {
+  const getCitas = useCallback(async () => {
+    setLoading(true);
     try {
       const idDueno = await AsyncStorage.getItem("userId");
       if (!idDueno) {
@@ -45,19 +48,20 @@ export default function AgendaDueno() {
       }
 
       const response = await axios.get(`${BASE_URL}/api/citasDueno/${idDueno}`);
-      const citasData: Cita[] = response.data;
-
-      setCitas(citasData);
+      setCitas(response.data);
     } catch (error) {
       console.error("❌ Error obteniendo citas:", error);
+      Alert.alert("Error", "No se pudieron obtener las citas.");
     } finally {
       setLoading(false);
     }
-  };
-
-  useEffect(() => {
-    getCitas();
   }, []);
+
+  useFocusEffect(
+    useCallback(() => {
+      getCitas();
+    }, [getCitas])
+  );
 
   const marcarComoCulminada = async (id: string) => {
     try {
@@ -65,14 +69,16 @@ export default function AgendaDueno() {
       getCitas();
     } catch (error) {
       console.error("❌ Error al actualizar cita:", error);
+      Alert.alert("Error", "No se pudo actualizar el estado de la cita.");
     }
   };
 
-  const citasPendientes = citas.filter((c) => c.id_estado_cita === 1);
+  const citasPendientes = citas.filter((c) => c.id_estado_cita !== 2);
   const citasCompletadas = citas.filter((c) => c.id_estado_cita === 2);
+
   const citasFiltradas = tab === "pendientes" ? citasPendientes : citasCompletadas;
 
-  if (loading) {
+  if (loading && citas.length === 0) {
     return (
       <View style={styles.loaderContainer}>
         <ActivityIndicator size="large" color="#479454" />
@@ -114,57 +120,49 @@ export default function AgendaDueno() {
           <Text style={styles.noCitas}>No hay citas {tab}.</Text>
         ) : (
           citasFiltradas.map((item) => {
+            const estaCulminada = item.id_estado_cita === 2;
+
             const ahora = new Date();
-            const horaFin = new Date(`${item.fecha}T${item.hora_finalizacion}`);
-            const esPasada = horaFin < ahora;
+            const fechaHoraFin = new Date(`${item.fecha.split('T')[0]}T${item.hora_finalizacion}`);
+            const esPasada = fechaHoraFin < ahora;
+
+            const botones = [];
+            if (tab === 'pendientes' && !estaCulminada) {
+              botones.push({
+                texto: "Culminar",
+                color: esPasada ? "#479454" : "#ccc",
+                onPress: esPasada ? () => marcarComoCulminada(item.id) : undefined,
+                disabled: !esPasada,
+              });
+            } else if (tab === 'completadas' && estaCulminada && item.calificada === 0) {
+              botones.push({
+                texto: "Calificar",
+                color: "#6CBA79",
+                onPress: () => router.push({
+                  pathname: "/Calificar",
+                  params: { 
+                    idCita: item.id, 
+                    idVeterinario: item.id_veterinario_o_zootecnista 
+                  },
+                }),
+              });
+            }
 
             return (
               <MascotaCard
                 key={item.id}
                 nombre={item.nombre_mascota}
                 hora={`${item.hora_inicio} - ${item.hora_finalizacion}`}
-                fecha={new Date(item.fecha).toLocaleDateString("es-CO")}
+                fecha={new Date(item.fecha).toLocaleDateString("es-CO", { timeZone: 'UTC' })}
                 tipo={item.nombre_servicio}
                 foto={
                   item.foto
                     ? { uri: item.foto }
                     : require("../../assets/images/navegacion/foto.png")
                 }
-                botones={
-                  tab === "pendientes"
-                    ? [
-                        {
-                          texto: "Culminó",
-                          color: esPasada ? "#479454" : "#ccc",
-                          onPress: esPasada
-                            ? () => marcarComoCulminada(item.id)
-                            : undefined,
-                        },
-                        {
-                          texto: "Calificar",
-                          color: esPasada ? "#6CBA79" : "#ccc",
-                          onPress: esPasada
-                            ? () =>
-                                router.push({
-                                  pathname: "/Calificar",
-                                  params: {
-                                    id: item.id,
-                                  },
-                                })
-                            : undefined,
-                        },
-                      ]
-                    : []
-                }
-                onPress={
-                  tab === "completadas"
-                    ? () =>
-                        router.push({
-                          pathname: "/DetalleCita",
-                          params: { id: item.id },
-                        })
-                    : undefined
-                }
+                botones={botones}
+                isCompleted={estaCulminada}
+                appointmentId={item.id}
               />
             );
           })
