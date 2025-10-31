@@ -11,7 +11,6 @@ import {
 
 interface BotonAccion {
   texto: string;
-  color: string;
   onPress?: () => void;
   disabled?: boolean;
 }
@@ -71,7 +70,10 @@ export default function MascotaCard({
           {botones.map((boton, index) => (
             <TouchableOpacity
               key={index}
-              style={[styles.boton, { backgroundColor: boton.color }]}
+              style={[
+                styles.boton,
+                boton.disabled ? styles.botonDisabled : styles.botonEnabled,
+              ]}
               onPress={boton.onPress}
               disabled={boton.disabled || !boton.onPress}
             >
@@ -119,6 +121,12 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     alignItems: "center",
     marginHorizontal: 5,
+  },
+  botonEnabled: {
+    backgroundColor: "#479454",
+  },
+  botonDisabled: {
+    backgroundColor: "#ccc",
   },
   textoBoton: {
     color: "#fff",

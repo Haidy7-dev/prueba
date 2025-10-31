@@ -130,14 +130,12 @@ export default function AgendaDueno() {
             if (tab === 'pendientes' && !estaCulminada) {
               botones.push({
                 texto: "Culminar",
-                color: esPasada ? "#479454" : "#ccc",
                 onPress: esPasada ? () => marcarComoCulminada(item.id) : undefined,
                 disabled: !esPasada,
               });
             } else if (tab === 'completadas' && estaCulminada && item.calificada === 0) {
               botones.push({
                 texto: "Calificar",
-                color: "#6CBA79",
                 onPress: () => router.push({
                   pathname: "/Calificar",
                   params: { 

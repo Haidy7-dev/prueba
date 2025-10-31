@@ -5,6 +5,6 @@
  * Para encontrar tu IP, puedes usar `ipconfig` en Windows o `ifconfig` en macOS/Linux.
  * Asegúrate de que tu dispositivo móvil y tu computadora estén en la misma red WiFi.
  */
-const API_IP = "10.164.93.130"; // 👈 ¡CAMBIA ESTA IP CUANDO SEA NECESARIO!
+const API_IP = "172.23.15.112"; // 👈 ¡CAMBIA ESTA IP CUANDO SEA NECESARIO!
 
 export const BASE_URL = `http://${API_IP}:3000`;

@@ -154,10 +154,8 @@ export default function HomeDueno() {
             <EvilIcons name="search" style={styles.iconoBuscar} />
             <TextInput
               style={styles.buscador}
-              placeholder="Buscar veterinario"
               value={busqueda}
               onChangeText={buscarVeterinarios}
-              placeholderTextColor="#999"
             />
           </View>
 

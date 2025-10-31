@@ -144,6 +144,7 @@ export default function VerVeterinario() {
         id_servicio: selectedServicio,
         id_usuario,
         id_mascota,
+        modalidad: "Presencial",
       };
 
       console.log("📤 Enviando cita:", payload);

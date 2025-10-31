@@ -7,7 +7,8 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import axios from "axios";
 import { useLocalSearchParams } from "expo-router";
 import React, { useEffect, useState } from "react";
-import { ActivityIndicator, Alert, ScrollView, StyleSheet, Text, View } from "react-native";
+import { ActivityIndicator, Alert, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import EstrellaCalificacion from "@/components/EstrellaCalificacion";
 
 interface ResumenCita {
   id: number;
@@ -29,6 +30,7 @@ interface ResumenCita {
   precio_servicio: number;
   fotoMascota?: string;
   lugar?: string;
+  calificada?: number; // 1 if rated, 0 if not
 }
 
 export default function DetalleCita() {
@@ -38,6 +40,7 @@ export default function DetalleCita() {
   const [resumen, setResumen] = useState<ResumenCita | null>(null);
   const [loading, setLoading] = useState(true);
   const [userType, setUserType] = useState<string | null>(null);
+  const [rating, setRating] = useState(0);
 
   // Show alert on screen load
   useEffect(() => {
@@ -92,6 +95,30 @@ export default function DetalleCita() {
     );
   }
 
+  const handleCalificar = async () => {
+    try {
+      const id_usuario = await AsyncStorage.getItem("userId");
+      if (!id_usuario) {
+        Alert.alert("Error", "No se encontró el usuario logueado");
+        return;
+      }
+
+      await axios.post(`${BASE_URL}/api/calificaciones`, {
+        puntaje: rating,
+        id_cita: idCita,
+        id_usuario: id_usuario,
+      });
+
+      Alert.alert("✅", "¡Gracias por calificar!");
+      // Refresh the resumen to update calificada status
+      const response = await axios.get(`${BASE_URL}/api/resumencitas/${idCita}`);
+      setResumen(response.data);
+    } catch (error) {
+      console.error("❌ Error al guardar calificación:", error);
+      Alert.alert("Error", "No se pudo guardar la calificación");
+    }
+  };
+
   return (
     <View style={{ flex: 1, backgroundColor: "#fff" }}>
       <Encabezado />
@@ -113,6 +140,22 @@ export default function DetalleCita() {
           lugar={resumen.lugar ?? "No especificado"}
           fotoMascota={resumen.fotoMascota}
         />
+
+        {/* Mostrar calificación solo si no está calificada y es usuario */}
+        {userType === "usuario" && resumen.calificada === 0 && (
+          <View style={styles.calificacionContainer}>
+            <Text style={styles.calificacionTitle}>Califica al veterinario</Text>
+            <EstrellaCalificacion
+              rating={rating}
+              onRatingChange={setRating}
+              size={40}
+              color="#FFB800"
+            />
+            <TouchableOpacity style={styles.botonCalificar} onPress={handleCalificar}>
+              <Text style={styles.textoBotonCalificar}>Calificar</Text>
+            </TouchableOpacity>
+          </View>
+        )}
       </ScrollView>
 
       {userType === "veterinario" ? <MenuVet /> : null}
@@ -144,5 +187,31 @@ const styles = StyleSheet.create({
   errorText: {
     fontSize: 16,
     color: "red",
+  },
+  calificacionContainer: {
+    alignItems: "center",
+    marginTop: 20,
+    padding: 16,
+    backgroundColor: "#f9f9f9",
+    borderRadius: 12,
+    marginBottom: 20,
+  },
+  calificacionTitle: {
+    fontSize: 18,
+    fontWeight: "bold",
+    color: "#000",
+    marginBottom: 10,
+  },
+  botonCalificar: {
+    backgroundColor: "#479454",
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 8,
+    marginTop: 15,
+  },
+  textoBotonCalificar: {
+    color: "#fff",
+    fontSize: 16,
+    fontWeight: "600",
   },
 });

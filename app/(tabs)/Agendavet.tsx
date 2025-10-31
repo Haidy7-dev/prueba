@@ -139,14 +139,10 @@ export default function AgendaVet() {
                   ? [
                       {
                         texto: "Culminó",
-                        color:
-                          item.id_estado_cita === 2 ? "#479454" : "#ccc",
                         onPress: () => actualizarEstado(item.id, 2),
                       },
                       {
                         texto: "No asistió",
-                        color:
-                          item.id_estado_cita === 3 ? "#C94A4A" : "#ccc",
                         onPress: () => actualizarEstado(item.id, 3),
                       },
                     ]
