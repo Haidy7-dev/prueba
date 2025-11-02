@@ -147,7 +147,8 @@ export default function AgendaDueno() {
                     pathname: "/Calificar",
                     params: {
                       idCita: item.id,
-                      idVeterinario: item.id_veterinario_o_zootecnista
+                      idVeterinario: item.id_veterinario_o_zootecnista,
+                      idServicio: item.id_servicio,
                     },
                   }),
                 });

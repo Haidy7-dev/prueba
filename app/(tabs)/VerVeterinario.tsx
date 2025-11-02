@@ -33,8 +33,8 @@ LocaleConfig.locales['es'] = {
     'Diciembre'
   ],
   monthNamesShort: ['Ene.', 'Feb.', 'Mar.', 'Abr.', 'May.', 'Jun.', 'Jul.', 'Ago.', 'Sep.', 'Oct.', 'Nov.', 'Dic.'],
-  dayNames: ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'],
-  dayNamesShort: ['Lun.', 'Mar.', 'Mié.', 'Jue.', 'Vie.', 'Sáb.', 'Dom.'],
+  dayNames: ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'],
+  dayNamesShort: ['Dom.', 'Lun.', 'Mar.', 'Mié.', 'Jue.', 'Vie.', 'Sáb.'],
   today: 'Hoy'
 };
 LocaleConfig.defaultLocale = 'es';
@@ -86,6 +86,7 @@ export default function VerVeterinario() {
         setVeterinario(resp.data.vet);
         setEspecializaciones(resp.data.especializaciones || []);
         setHorarios(resp.data.horarios || []);
+        console.log("Fetched horarios:", resp.data.horarios); // Add this line
         setServicios(resp.data.servicios || []);
       } catch (err) {
         console.error("Error al cargar el veterinario:", err);
@@ -127,7 +128,7 @@ export default function VerVeterinario() {
     const estrellas = [];
     for (let i = 1; i <= 5; i++) {
       if (i <= fullStars) estrellas.push(<Text key={i} style={styles.estrella}>★</Text>);
-      else if (half && i === fullStars + 1) estrellas.push(<Text key={i} style={styles.mediaEstrella}>⯪</Text>);
+      else if (half && i === fullStars + 1) estrellas.push(<Text key={i} style={styles.estrellaVacia}>☆</Text>);
       else estrellas.push(<Text key={i} style={styles.estrellaVacia}>☆</Text>);
     }
     return estrellas;
@@ -318,7 +319,7 @@ export default function VerVeterinario() {
           <View style={styles.calendarContainer}>
             <Calendar
               minDate={todayStr}
-              firstDay={1}
+              firstDay={0}
               onDayPress={(day) => {
                 const diaSemana = getDiaSemana(day.dateString);
                 if (diasDisponibles.includes(diaSemana)) {
@@ -408,7 +409,7 @@ const styles = StyleSheet.create({
   estrellasFila: { flexDirection: "row", alignItems: "center", marginTop: 6 },
   estrella: { fontSize: 18, color: "#FFB800", marginRight: 4 },
   mediaEstrella: { fontSize: 18, color: "#FFB800", marginRight: 4 },
-  estrellaVacia: { fontSize: 18, color: "#FFB800", opacity: 0.4, marginRight: 4 },
+  estrellaVacia: { fontSize: 18, color: "#CCCCCC", marginRight: 4, opacity: 1 },
   promedio: { marginLeft: 8, fontSize: 14, color: "#333" },
   lineaVerde: { borderBottomWidth: 1, borderBottomColor: "#479454", marginHorizontal: 16 },
   contenedorTexto: { padding: 16 },

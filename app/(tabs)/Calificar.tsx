@@ -11,7 +11,7 @@ import { Alert, Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } fr
 
 export default function CalificarScreen() {
   const [rating, setRating] = useState(0);
-  const { idCita } = useLocalSearchParams();
+  const { idCita, idVeterinario, idServicio } = useLocalSearchParams();
   const router = useRouter();
   
   const handleCalificar = async () => {
@@ -22,10 +22,17 @@ export default function CalificarScreen() {
         return;
       }
 
+      if (!idVeterinario || !idServicio) {
+        Alert.alert("Error", "Faltan datos para calificar al veterinario o servicio.");
+        return;
+      }
+
       await axios.post(`${BASE_URL}/api/calificaciones`, {
         puntaje: rating,
         id_cita: idCita,
         id_usuario: id_usuario,
+        id_veterinario_o_zootecnista: idVeterinario,
+        id_servicio: idServicio,
       });
 
       Alert.alert("✅", "¡Gracias por calificar!");
