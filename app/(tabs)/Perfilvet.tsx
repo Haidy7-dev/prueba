@@ -14,7 +14,10 @@ export default function PerfilVeterinario() {
   const router = useRouter();
   
   const [idVet, setIdVet] = useState<string | null>(null);
-  const [nombre, setNombre] = useState("");
+  const [primerNombre, setPrimerNombre] = useState("");
+  const [segundoNombre, setSegundoNombre] = useState("");
+  const [primerApellido, setPrimerApellido] = useState("");
+  const [segundoApellido, setSegundoApellido] = useState("");
   const [correo, setCorreo] = useState("");
   const [telefono, setTelefono] = useState("");
   const [especializacion, setEspecializacion] = useState("");
@@ -31,14 +34,21 @@ export default function PerfilVeterinario() {
 
         setIdVet(id);
 
-        const res = await axios.get(`${BASE_URL}/api/veterinarios/${id}`);
-        const v = res.data;
-        setNombre(v.nombre || "");
-        setCorreo(v.correo_electronico || "");
-        setTelefono(v.telefono || "");
-        setEspecializacion(v.especializacion || "");
-        setInformacion(v.informacion || "");
-        setFotoPerfil(v.foto || null);
+        const res = await axios.get(`${BASE_URL}/api/veterinarios/detalle/${id}`);
+        const { vet, especializaciones } = res.data;
+
+        setPrimerNombre(vet.primer_nombre || "");
+        setSegundoNombre(vet.segundo_nombre || "");
+        setPrimerApellido(vet.primer_apellido || "");
+        setSegundoApellido(vet.segundo_apellido || "");
+        setCorreo(vet.correo_electronico || "");
+        setTelefono(vet.telefono || "");
+        setInformacion(vet.descripcion_de_perfil || "");
+        setFotoPerfil(vet.foto ? `${BASE_URL}/pethub/${vet.foto}` : null);
+
+        if (especializaciones.length > 0) {
+          setEspecializacion(especializaciones[0].nombre);
+        }
       } catch (error: any) {
         console.error("Error al cargar perfil:", error);
         Alert.alert("Error", "No se pudo cargar el perfil del veterinario.");
@@ -66,7 +76,10 @@ export default function PerfilVeterinario() {
 
     try {
       await axios.put(`${BASE_URL}/api/veterinarios/${idVet}`, {
-        nombre,
+        primer_nombre: primerNombre,
+        segundo_nombre: segundoNombre,
+        primer_apellido: primerApellido,
+        segundo_apellido: segundoApellido,
         correo_electronico: correo,
         telefono,
         especializacion,
@@ -137,9 +150,27 @@ export default function PerfilVeterinario() {
 
         <TextInput
           style={styles.input}
-          placeholder="Nombre completo"
-          value={nombre}
-          onChangeText={setNombre}
+          placeholder="Primer Nombre"
+          value={primerNombre}
+          onChangeText={setPrimerNombre}
+        />
+        <TextInput
+          style={styles.input}
+          placeholder="Segundo Nombre"
+          value={segundoNombre}
+          onChangeText={setSegundoNombre}
+        />
+        <TextInput
+          style={styles.input}
+          placeholder="Primer Apellido"
+          value={primerApellido}
+          onChangeText={setPrimerApellido}
+        />
+        <TextInput
+          style={styles.input}
+          placeholder="Segundo Apellido"
+          value={segundoApellido}
+          onChangeText={setSegundoApellido}
         />
         <TextInput
           style={styles.input}

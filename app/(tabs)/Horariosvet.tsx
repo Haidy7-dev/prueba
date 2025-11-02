@@ -113,7 +113,7 @@ export default function Horariosvet() {
       setCargando(true);
 
       // 🧹 Eliminar los horarios previos de este veterinario
-      await axios.delete(`${BASE_URL}/api/horarios/${idVet}`);
+      await axios.delete(`${BASE_URL}/api/horarios/veterinario/${idVet}`);
 
       // 💾 Guardar nuevos bloques
       for (const dia of diasSeleccionados) {

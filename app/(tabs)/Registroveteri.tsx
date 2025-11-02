@@ -7,6 +7,16 @@ import React, { useEffect, useState } from "react";
 import { Alert, Platform, ScrollView, StyleSheet, Text, TextInput, View, } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
+interface Especializacion {
+  id: number;
+  nombre: string;
+}
+
+interface Servicio {
+  id: number;
+  nombre: string;
+}
+
 export default function RegistroVeteri() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
@@ -21,19 +31,19 @@ export default function RegistroVeteri() {
   const [telefono, setTelefono] = useState("");
   const [direccionClinica, setDireccionClinica] = useState("");
   const [contrasena, setContrasena] = useState("");
-  const [especializacion, setEspecializacion] = useState("");
-  const [servicio, setServicio] = useState("");
+  const [especializacion, setEspecializacion] = useState<number | null>(null);
+  const [servicio, setServicio] = useState<number | null>(null);
 
   // Listas de opciones
-  const [Especializaciones, setEspecializaciones] = useState<any[]>([]);
-  const [Servicios, setServicios] = useState<any[]>([]);
+  const [especializacionesList, setEspecializacionesList] = useState<Especializacion[]>([]);
+  const [serviciosList, setServiciosList] = useState<Servicio[]>([]);
 
   // --- Obtener especializaciones ---
   useEffect(() => {
     const getEspecializaciones = async () => {
       try {
         const response = await axios.get(`${BASE_URL}/api/especializaciones`);
-        setEspecializaciones(response.data);
+        setEspecializacionesList(response.data);
       } catch (error) {
         console.log("❌ Error al obtener las especializaciones:", error);
       }
@@ -46,7 +56,7 @@ export default function RegistroVeteri() {
     const getServicios = async () => {
       try {
         const response = await axios.get(`${BASE_URL}/api/servicio`);
-        setServicios(response.data);
+        setServiciosList(response.data);
       } catch (error) {
         console.log("❌ Error al obtener los servicios:", error);
       }
@@ -61,9 +71,14 @@ export default function RegistroVeteri() {
       return;
     }
 
+    if (telefono && telefono.length > 15) {
+      Alert.alert("Error", "El número de teléfono no puede tener más de 15 dígitos.");
+      return;
+    }
+
     try {
-      const response = await axios.post(`${BASE_URL}/api/registroVeterina`, {
-        id,
+      const requestBody: any = {
+        id: parseInt(id),
         primer_nombre: primerNombre,
         segundo_nombre: segundoNombre,
         primer_apellido: primerApellido,
@@ -72,9 +87,16 @@ export default function RegistroVeteri() {
         telefono,
         direccion_clinica: direccionClinica,
         contrasena,
-        especializacion,
-        servicio,
-      });
+      };
+
+      if (especializacion !== null) {
+        requestBody.especializacion = especializacion;
+      }
+      if (servicio !== null) {
+        requestBody.servicio = servicio;
+      }
+
+      const response = await axios.post(`${BASE_URL}/api/registroVeterina`, requestBody);
 
       if (response.status === 201) {
         Alert.alert("✅ Registro exitoso", "Veterinario registrado correctamente.");
@@ -82,10 +104,14 @@ export default function RegistroVeteri() {
       }
     } catch (error: any) {
       console.error("❌ Error al registrar veterinario:", error);
-      if (error.response?.status === 409) {
-        Alert.alert("Error", "El ID o el correo ya están registrados.");
+      if (error.response) {
+        console.error("Respuesta de error del servidor:", error.response.data);
+        Alert.alert("Error", `No se pudo registrar el veterinario: ${error.response.data.message || 'Error desconocido'}`);
+      } else if (error.request) {
+        console.error("No se recibió respuesta del servidor:", error.request);
+        Alert.alert("Error", "No se pudo conectar al servidor. Verifique su conexión a internet.");
       } else {
-        Alert.alert("Error", "Ocurrió un problema al registrar el veterinario.");
+        Alert.alert("Error", "Ocurrió un error inesperado al registrar el veterinario");
       }
     }
   };
@@ -118,12 +144,12 @@ export default function RegistroVeteri() {
       <View style={styles.pickerContainer}>
         <Picker
           selectedValue={especializacion}
-          onValueChange={(itemValue) => setEspecializacion(itemValue)}
+          onValueChange={(itemValue) => setEspecializacion(itemValue === "" ? null : Number(itemValue))}
           style={styles.picker}
         >
           <Picker.Item label="Selecciona una especialización" value="" />
-          {Especializaciones.map((esp) => (
-            <Picker.Item key={esp.id} label={esp.nombre} value={esp.nombre} />
+          {especializacionesList.map((esp) => (
+            <Picker.Item key={esp.id} label={esp.nombre} value={esp.id} />
           ))}
         </Picker>
       </View>
@@ -132,12 +158,12 @@ export default function RegistroVeteri() {
       <View style={styles.pickerContainer}>
         <Picker
           selectedValue={servicio}
-          onValueChange={(itemValue) => setServicio(itemValue)}
+          onValueChange={(itemValue) => setServicio(itemValue === "" ? null : Number(itemValue))}
           style={styles.picker}
         >
           <Picker.Item label="Selecciona un servicio" value="" />
-          {Servicios.map((serv) => (
-            <Picker.Item key={serv.id} label={serv.nombre} value={serv.nombre} />
+          {serviciosList.map((serv) => (
+            <Picker.Item key={serv.id} label={serv.nombre} value={serv.id} />
           ))}
         </Picker>
       </View>
