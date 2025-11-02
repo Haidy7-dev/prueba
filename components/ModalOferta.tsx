@@ -87,15 +87,7 @@ export default function ModalOferta({
               </View>
             </View>
 
-            <TouchableOpacity
-              onPress={onClose}
-              style={styles.iconoSalirContainer}
-            >
-              <Image
-                source={require("../assets/images/navegacion/iconosalir.png")}
-                style={styles.iconoSalir}
-              />
-            </TouchableOpacity>
+
           </View>
         </View>
       </BlurView>
@@ -175,6 +167,5 @@ const styles = StyleSheet.create({
     marginRight: 6,
   },
   imagen: { width: "100%", height: 100, borderRadius: 5 },
-  iconoSalirContainer: { marginTop: 12, alignSelf: "flex-start" },
-  iconoSalir: { width: 26, height: 26 },
+
 });

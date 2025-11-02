@@ -14,6 +14,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import { useRouter, usePathname } from "expo-router";
 
 interface Appointment {
   id: string;
@@ -46,6 +47,22 @@ export default function Encabezado() {
   const [userId, setUserId] = useState<string | null>(null);
   const [dynamicNotifications, setDynamicNotifications] = useState<DynamicNotification[]>([]);
   const [hasNewNotifications, setHasNewNotifications] = useState(false);
+  const router = useRouter();
+  const pathname = usePathname();
+
+  const showLogout = pathname === "/Perfilvet" || pathname === "/PerfilDueno";
+  const showNotificationBell = pathname === "/HomeDueno" || pathname === "/Iniciovet";
+
+  const handleLogout = async () => {
+    try {
+      await AsyncStorage.removeItem("userToken");
+      await AsyncStorage.removeItem("userId");
+      await AsyncStorage.removeItem("userType");
+      router.replace("/Iniciarsesion1");
+    } catch (error) {
+      console.error("Error during logout:", error);
+    }
+  };
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -154,15 +171,30 @@ export default function Encabezado() {
         resizeMode="contain"
       />
 
-      {/* CAMPANA COMO BOTÓN */}
-      <TouchableOpacity onPress={() => setModalVisible(true)} style={styles.campanaContainer}>
-        <Image
-          source={require("../assets/images/navegacion/campana.png")}
-          style={styles.campana}
-          resizeMode="contain"
-        />
-        {hasNewNotifications && <View style={styles.redDot} />}
-      </TouchableOpacity>
+      <View style={styles.headerRight}>
+        {/* CAMPANA COMO BOTÓN */}
+        {showNotificationBell && (
+          <TouchableOpacity onPress={() => setModalVisible(true)} style={styles.campanaContainer}>
+            <Image
+              source={require("../assets/images/navegacion/campana.png")}
+              style={styles.campana}
+              resizeMode="contain"
+            />
+            {hasNewNotifications && <View style={styles.redDot} />}
+          </TouchableOpacity>
+        )}
+
+        {/* BOTÓN DE LOGOUT */}
+        {showLogout && (
+          <TouchableOpacity onPress={handleLogout} style={styles.logoutButton}>
+            <Image
+              source={require("../assets/images/navegacion/iconosalir.png")}
+              style={styles.iconoSalir}
+              resizeMode="contain"
+            />
+          </TouchableOpacity>
+        )}
+      </View>
 
       {/* MODAL DE NOTIFICACIONES */}
       <Modal
@@ -224,11 +256,7 @@ export default function Encabezado() {
             {/* Icono/imagen de salir abajo (PNG) que también cierra */}
             <View style={styles.footer}>
               <TouchableOpacity onPress={() => setModalVisible(false)}>
-                <Image
-                  source={require("../assets/images/navegacion/iconosalir.png")}
-                  style={styles.iconoSalir}
-                  resizeMode="contain"
-                />
+                <Text style={styles.closeButtonText}>Cerrar</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -253,6 +281,10 @@ const styles = StyleSheet.create({
     width: 50,                     
     height: 60,                     
   },
+  headerRight: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
   campana: {
     width: 30,                      
     height: 35,                    
@@ -268,6 +300,13 @@ const styles = StyleSheet.create({
     borderRadius: 5,
     width: 10,
     height: 10,
+  },
+  logoutButton: {
+    marginLeft: 15,
+  },
+  iconoSalir: {
+    width: 28,
+    height: 28,
   },
   blurContainer: {
     flex: 1,                        // Ocupar toda la pantalla
@@ -319,10 +358,11 @@ const styles = StyleSheet.create({
     paddingVertical: 10,            // Espaciado superior e inferior
     borderTopWidth: 1,              // Línea superior separadora del footer
     borderTopColor: "#000000",      
-    alignItems: "flex-start",       // Alinea el contenido (icono) hacia la izquierda
+    alignItems: "center",       // Alinea el contenido (icono) hacia el centro
   },
-  iconoSalir: {
-    width: 28,                     
-    height: 28,                     
+  closeButtonText: {
+    color: "#479454",
+    fontSize: 16,
+    fontWeight: "bold",
   },
 });

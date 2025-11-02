@@ -80,7 +80,7 @@ export default function InicioVet() {
                 key={item.id}
                 nombre={item.nombreMascota}
                 hora={`${item.hora_inicio} - ${item.hora_finalizacion}`}
-                fecha={item.fecha}
+                fecha={new Date(item.fecha).toLocaleDateString("es-CO")}
                 tipo={item.servicio}
                 foto={
                   item.foto
