@@ -3,18 +3,10 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import axios from "axios";
 import Checkbox from "expo-checkbox";
 import { useRouter } from "expo-router";
-import React, { useState } from "react";
-import {
-  ActivityIndicator,
-  Alert,
-  Dimensions,
-  Image,
-  StyleSheet,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
-} from "react-native";
+import React, { useRef, useState, useEffect } from "react";
+import {ActivityIndicator,Alert,Dimensions,Image,StyleSheet,Text,TextInput,TouchableOpacity,View,Animated,} from "react-native";
+import { FontAwesome5 } from "@expo/vector-icons";
+import { Video, ResizeMode } from "expo-av";
 
 const { width } = Dimensions.get("window");
 
@@ -25,6 +17,52 @@ const IniciarSesion1: React.FC = () => {
   const [password, setPassword] = useState("");
   const [cargando, setCargando] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+
+  // 🔹 Animación para mostrar/ocultar video del pajarito
+  const [showVideo, setShowVideo] = useState(false);
+  const fadeAnim = useRef(new Animated.Value(0)).current;
+  const videoRef = useRef<Video>(null);
+
+  // 🔹 Cargar credenciales guardadas al montar el componente
+  useEffect(() => {
+    const loadSavedCredentials = async () => {
+      try {
+        const savedEmail = await AsyncStorage.getItem("savedEmail");
+        const savedPassword = await AsyncStorage.getItem("savedPassword");
+        const savedRememberMe = await AsyncStorage.getItem("rememberMe");
+
+        if (savedEmail) setEmail(savedEmail);
+        if (savedPassword) setPassword(savedPassword);
+        if (savedRememberMe === "true") setRememberMe(true);
+      } catch (error) {
+        console.error("Error cargando credenciales guardadas:", error);
+      }
+    };
+
+    loadSavedCredentials();
+  }, []);
+
+  const toggleEye = () => {
+    if (showVideo) {
+      // Ocultar video y volver al ojo
+      Animated.timing(fadeAnim, {
+        toValue: 0,
+        duration: 300,
+        useNativeDriver: true,
+      }).start(() => setShowVideo(false));
+    } else {
+      // Mostrar video y ocultar ojo
+      setShowVideo(true);
+      Animated.timing(fadeAnim, {
+        toValue: 1,
+        duration: 300,
+        useNativeDriver: true,
+      }).start();
+    }
+
+    // Cambiar visibilidad de la contraseña también
+    setShowPassword(!showPassword);
+  };
 
   const handleLogin = async () => {
     if (!email || !password) {
@@ -48,12 +86,23 @@ const IniciarSesion1: React.FC = () => {
           await AsyncStorage.setItem("userId", vetRes.data.id.toString());
           await AsyncStorage.setItem("userType", "veterinario");
 
+          // 🔹 Guardar credenciales si rememberMe está activado
+          if (rememberMe) {
+            await AsyncStorage.setItem("savedEmail", email);
+            await AsyncStorage.setItem("savedPassword", password);
+            await AsyncStorage.setItem("rememberMe", "true");
+          } else {
+            await AsyncStorage.removeItem("savedEmail");
+            await AsyncStorage.removeItem("savedPassword");
+            await AsyncStorage.removeItem("rememberMe");
+          }
+
           Alert.alert("Inicio exitoso", "Bienvenido veterinario 🩺");
           router.replace("./Iniciovet");
           encontrado = true;
         }
       } catch (error: any) {
-        // No mostramos alerta aquí todavía, seguimos con usuario
+        // Si no es veterinario, seguimos con usuario
       }
 
       // 🔹 2️⃣ Si no fue veterinario, buscar en usuario
@@ -67,6 +116,17 @@ const IniciarSesion1: React.FC = () => {
           if (userRes.data && userRes.data.id) {
             await AsyncStorage.setItem("userId", userRes.data.id.toString());
             await AsyncStorage.setItem("userType", "usuario");
+
+            // 🔹 Guardar credenciales si rememberMe está activado
+            if (rememberMe) {
+              await AsyncStorage.setItem("savedEmail", email);
+              await AsyncStorage.setItem("savedPassword", password);
+              await AsyncStorage.setItem("rememberMe", "true");
+            } else {
+              await AsyncStorage.removeItem("savedEmail");
+              await AsyncStorage.removeItem("savedPassword");
+              await AsyncStorage.removeItem("rememberMe");
+            }
 
             Alert.alert("Inicio exitoso", "Bienvenido dueño 🐾");
             router.replace("./HomeDueno");
@@ -118,11 +178,31 @@ const IniciarSesion1: React.FC = () => {
             value={password}
             onChangeText={setPassword}
           />
-          <TouchableOpacity
-            style={styles.eyeButton}
-            onPress={() => setShowPassword(!showPassword)}
-          >
-            <Text style={styles.eyeText}>{showPassword ? "🙈" : "👁️"}</Text>
+
+          <TouchableOpacity style={styles.eyeButton} onPress={toggleEye}>
+            {showVideo ? (
+              <Animated.View style={{ opacity: fadeAnim }}>
+                <Video
+                  ref={videoRef}
+                  source={require("../../assets/images/navegacion/pajaro.mp4")}
+                  style={styles.video}
+                  resizeMode={ResizeMode.CONTAIN}
+                  shouldPlay
+                  isLooping={false}
+                />
+              </Animated.View>
+            ) : (
+              <Animated.View
+                style={{
+                  opacity: fadeAnim.interpolate({
+                    inputRange: [0, 1],
+                    outputRange: [1, 0],
+                  }),
+                }}
+              >
+                <FontAwesome5 name="eye" size={22} color="#479454" />
+              </Animated.View>
+            )}
           </TouchableOpacity>
         </View>
 
@@ -176,6 +256,22 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: "#333",
   },
+  passwordContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    borderWidth: 1,
+    borderColor: "#6CBA79",
+    borderRadius: 10,
+    marginTop: 5,
+  },
+  eyeButton: {
+    paddingHorizontal: 10,
+    paddingVertical: 12,
+  },
+  video: {
+    width: 40,
+    height: 40,
+  },
   optionsRow: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginTop: 15 },
   rememberMe: { flexDirection: "row", alignItems: "center" },
   rememberText: { marginLeft: 6, fontSize: 12, color: "#333" },
@@ -197,19 +293,4 @@ const styles = StyleSheet.create({
   },
   registerButtonText: { color: "#fff", fontSize: 20, fontWeight: "bold" },
   paws: { width: width, height: 80, marginBottom: 10 },
-  passwordContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    borderWidth: 1,
-    borderColor: "#6CBA79",
-    borderRadius: 10,
-    marginTop: 5,
-  },
-  eyeButton: {
-    paddingHorizontal: 10,
-    paddingVertical: 12,
-  },
-  eyeText: {
-    fontSize: 18,
-  },
 });

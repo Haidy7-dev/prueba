@@ -1,5 +1,6 @@
 import { BASE_URL } from "@/config/api";
 import { Ionicons } from "@expo/vector-icons";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import axios from "axios";
 import { useRouter } from "expo-router";
 import React, { useState } from "react";
@@ -51,8 +52,13 @@ export default function RegistroUsuario() {
     try {
       const response = await axios.post(`${BASE_URL}/api/usuario`, form);
       console.log("✅ Usuario guardado:", response.data);
+
+      // Guardar automáticamente la sesión del usuario registrado
+      await AsyncStorage.setItem("userId", id.toString());
+      await AsyncStorage.setItem("userType", "usuario");
+
       Alert.alert("Éxito", "Usuario registrado correctamente.");
-      router.push("/HomeDueno");
+      router.replace("./HomeDueno"); // Usar replace para evitar volver al registro
     } catch (error: any) {
       console.error("❌ Error al registrar:", error);
       Alert.alert("Error", error.response?.data?.message || "No se pudo registrar el usuario");

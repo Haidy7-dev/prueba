@@ -26,6 +26,9 @@ export default function PerfilVeterinario() {
   const [informacion, setInformacion] = useState("");
   const [fotoPerfil, setFotoPerfil] = useState<string | null>(null);
   const [especializaciones, setEspecializaciones] = useState([]);
+  const [servicios, setServicios] = useState<any[]>([]);
+  const [serviciosSeleccionados, setServiciosSeleccionados] = useState<any[]>([]);
+  const [serviciosList, setServiciosList] = useState<any[]>([]);
 
   // ✅ Cargar veterinario desde backend
   useEffect(() => {
@@ -82,6 +85,35 @@ export default function PerfilVeterinario() {
     getEspecializaciones();
   }, []);
 
+  // ✅ Cargar lista de servicios
+  useEffect(() => {
+    const getServicios = async () => {
+      try {
+        const response = await axios.get(`${BASE_URL}/api/servicio`);
+        setServiciosList(response.data);
+      } catch (error) {
+        console.log("Error al obtener servicios:", error);
+      }
+    };
+    getServicios();
+  }, []);
+
+  // ✅ Cargar servicios del veterinario
+  useEffect(() => {
+    if (idVet) {
+      const cargarServiciosVet = async () => {
+        try {
+          const resp = await axios.get(`${BASE_URL}/api/veterinarios/detalle/${idVet}`);
+          setServicios(resp.data.servicios || []);
+          setServiciosSeleccionados(resp.data.servicios || []);
+        } catch (error) {
+          console.error("Error al cargar servicios del veterinario:", error);
+        }
+      };
+      cargarServiciosVet();
+    }
+  }, [idVet]);
+
   // ✅ Guardar perfil
   const manejarGuardar = async () => {
     if (!idVet) return Alert.alert("Error", "No se pudo identificar al veterinario.");
@@ -102,6 +134,7 @@ export default function PerfilVeterinario() {
         especializacion,
         informacion,
         foto: fotoFilename,
+        servicios: serviciosSeleccionados,
       });
 
       Alert.alert("Éxito", "Perfil actualizado correctamente.");
@@ -132,14 +165,14 @@ export default function PerfilVeterinario() {
       
       if (idVet) {
         const formData = new FormData();
-        const fileName = uri.split('/').pop();
-        const fileType = fileName.split('.').pop();
+      const fileName = uri.split('/').pop() || 'foto.jpg';
+      const fileType = fileName.split('.').pop() || 'jpg';
 
-        formData.append('foto', {
-          uri,
-          name: fileName,
-          type: `image/${fileType}`,
-        });
+      formData.append('foto', {
+        uri,
+        name: fileName,
+        type: `image/${fileType}`,
+      } as any);
 
         try {
           const response = await axios.post(`${BASE_URL}/upload/veterinario/${idVet}`, formData, {
@@ -248,6 +281,51 @@ export default function PerfilVeterinario() {
           multiline
         />
 
+        <Text style={styles.sectionTitle}>Servicios que ofreces:</Text>
+        {serviciosList.map((serv) => {
+          const isSelected = serviciosSeleccionados.some((s: any) => s.id === serv.id);
+          const selectedServicio = serviciosSeleccionados.find((s: any) => s.id === serv.id);
+          return (
+            <View key={serv.id} style={styles.servicioContainer}>
+              <TouchableOpacity
+                style={[
+                  styles.checkboxContainer,
+                  isSelected && styles.checkboxSelected,
+                ]}
+                onPress={() => {
+                  if (isSelected) {
+                    setServiciosSeleccionados((prev) =>
+                      prev.filter((s: any) => s.id !== serv.id)
+                    );
+                  } else {
+                    setServiciosSeleccionados((prev) => [
+                      ...prev,
+                      { id: serv.id, precio: "" },
+                    ]);
+                  }
+                }}
+              >
+                <Text style={styles.checkboxText}>{serv.nombre}</Text>
+              </TouchableOpacity>
+              {isSelected && (
+                <TextInput
+                  placeholder="Precio"
+                  style={styles.inputPrecio}
+                  keyboardType="numeric"
+                  value={selectedServicio?.precio?.toString() || ""}
+                  onChangeText={(text) => {
+                    setServiciosSeleccionados((prev) =>
+                      prev.map((s: any) =>
+                        s.id === serv.id ? { ...s, precio: text } : s
+                      )
+                    );
+                  }}
+                />
+              )}
+            </View>
+          );
+        })}
+
         <View style={styles.botonesContainer}>
           <BotonGeneral title="Guardar" onPress={manejarGuardar} />
           <Text style={styles.infoText}>
@@ -316,5 +394,43 @@ const styles = StyleSheet.create({
     fontSize: 13,
     marginVertical: 12,
     fontStyle: "italic",
+  },
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: "bold",
+    color: "#000",
+    marginBottom: 10,
+    width: "90%",
+    textAlign: "left",
+  },
+  servicioContainer: {
+    width: "90%",
+    marginBottom: 12,
+  },
+  checkboxContainer: {
+    borderWidth: 1,
+    borderColor: "#4CAF50",
+    borderRadius: 8,
+    padding: 12,
+    width: "100%",
+    marginBottom: 8,
+    backgroundColor: "#fff",
+  },
+  checkboxSelected: {
+    backgroundColor: "#E8F5E8",
+    borderColor: "#4CAF50",
+  },
+  checkboxText: {
+    fontSize: 16,
+    color: "#000",
+  },
+  inputPrecio: {
+    borderWidth: 1,
+    borderColor: "#4CAF50",
+    borderRadius: 8,
+    padding: 12,
+    width: "100%",
+    marginTop: 8,
+    minHeight: 50,
   },
 });

@@ -39,17 +39,11 @@ export default function Horariosvet() {
     obtenerIdVet();
   }, []);
 
-  // 🔹 Horas AM y PM
-  const horasAM: string[] = [];
-  for (let h = 6; h < 12; h++) {
-    horasAM.push(`${h}:00`);
-    horasAM.push(`${h}:30`);
-  }
-
-  const horasPM: string[] = [];
-  for (let h = 12; h <= 23; h++) {
-    horasPM.push(`${h}:00`);
-    horasPM.push(`${h}:30`);
+  // 🔹 Horas
+  const horas: string[] = [];
+  for (let h = 6; h <= 23; h++) {
+    horas.push(`${h}:00`);
+    horas.push(`${h}:30`);
   }
 
   // 🔹 Cargar horarios del veterinario
@@ -171,9 +165,9 @@ export default function Horariosvet() {
 
             {(horariosPorDia[dia.valor] || []).map((bloque, index) => (
               <View key={index} style={styles.bloqueContainer}>
-                <Text style={styles.label}>Inicio (AM):</Text>
+                <Text style={styles.label}>Inicio:</Text>
                 <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-                  {horasAM.map((hora) => (
+                  {horas.map((hora) => (
                     <TouchableOpacity
                       key={`inicio-${dia.valor}-${index}-${hora}`}
                       style={[
@@ -194,9 +188,9 @@ export default function Horariosvet() {
                   ))}
                 </ScrollView>
 
-                <Text style={styles.label}>Fin (PM):</Text>
+                <Text style={styles.label}>Fin:</Text>
                 <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-                  {horasPM.map((hora) => (
+                  {horas.map((hora) => (
                     <TouchableOpacity
                       key={`fin-${dia.valor}-${index}-${hora}`}
                       style={[

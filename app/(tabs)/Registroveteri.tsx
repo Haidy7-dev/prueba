@@ -1,10 +1,11 @@
 import BotonGeneral from "@/components/BotonGeneral";
 import { BASE_URL } from "@/config/api";
 import { Picker } from "@react-native-picker/picker";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import axios from "axios";
 import { useRouter } from "expo-router";
 import React, { useEffect, useState } from "react";
-import { Alert, Platform, ScrollView, StyleSheet, Text, TextInput, View, } from "react-native";
+import { Alert, Platform, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View, } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 interface Especializacion {
@@ -15,6 +16,10 @@ interface Especializacion {
 interface Servicio {
   id: number;
   nombre: string;
+}
+
+interface ServicioSeleccionado {
+  id: number;
 }
 
 export default function RegistroVeteri() {
@@ -32,7 +37,7 @@ export default function RegistroVeteri() {
   const [direccionClinica, setDireccionClinica] = useState("");
   const [contrasena, setContrasena] = useState("");
   const [especializacion, setEspecializacion] = useState<string | null>(null);
-  const [servicio, setServicio] = useState<number | null>(null);
+  const [serviciosSeleccionados, setServiciosSeleccionados] = useState<number[]>([]);
 
   // Listas de opciones
   const [especializacionesList, setEspecializacionesList] = useState<Especializacion[]>([]);
@@ -43,7 +48,7 @@ export default function RegistroVeteri() {
     const getEspecializaciones = async () => {
       try {
         const response = await axios.get(`${BASE_URL}/api/especializaciones`);
-        setEspecializacionesList(response.data);
+        setEspecializacionesList(response.data.map((esp: any) => ({ id: esp.id, nombre: esp.nombre })));
       } catch (error) {
         console.log("❌ Error al obtener las especializaciones:", error);
       }
@@ -78,7 +83,7 @@ export default function RegistroVeteri() {
 
     try {
       const requestBody: any = {
-        id: parseInt(id),
+        id,
         primer_nombre: primerNombre,
         segundo_nombre: segundoNombre,
         primer_apellido: primerApellido,
@@ -92,15 +97,19 @@ export default function RegistroVeteri() {
       if (especializacion !== null) {
         requestBody.especializacion = especializacion;
       }
-      if (servicio !== null) {
-        requestBody.servicio = servicio;
+      if (serviciosSeleccionados.length > 0) {
+        requestBody.servicios = serviciosSeleccionados;
       }
 
       const response = await axios.post(`${BASE_URL}/api/registroVeterina`, requestBody);
 
       if (response.status === 201) {
+        // Guardar automáticamente la sesión del veterinario registrado
+        await AsyncStorage.setItem("userId", id.toString());
+        await AsyncStorage.setItem("userType", "veterinario");
+
         Alert.alert("✅ Registro exitoso", "Veterinario registrado correctamente.");
-        router.push("./Perfilvet");
+        router.replace("./Iniciovet"); // Usar replace para evitar volver al registro
       }
     } catch (error: any) {
       console.error("❌ Error al registrar veterinario:", error);
@@ -154,19 +163,35 @@ export default function RegistroVeteri() {
         </Picker>
       </View>
 
-      {/* Picker de Servicio */}
-      <View style={styles.pickerContainer}>
-        <Picker
-          selectedValue={servicio}
-          onValueChange={(itemValue) => setServicio(itemValue === "" ? null : Number(itemValue))}
-          style={styles.picker}
-        >
-          <Picker.Item label="Selecciona un servicio" value="" />
-          {serviciosList.map((serv) => (
-            <Picker.Item key={serv.id} label={serv.nombre} value={serv.id} />
-          ))}
-        </Picker>
-      </View>
+      {/* Selección múltiple de Servicios */}
+      <Text style={styles.sectionTitle}>Selecciona los servicios que ofreces:</Text>
+      {serviciosList.map((serv) => {
+        const isSelected = serviciosSeleccionados.includes(serv.id);
+        return (
+          <View key={serv.id} style={styles.servicioContainer}>
+            <TouchableOpacity
+              style={[
+                styles.checkboxContainer,
+                isSelected && styles.checkboxSelected,
+              ]}
+              onPress={() => {
+                if (isSelected) {
+                  setServiciosSeleccionados((prev) =>
+                    prev.filter((id) => id !== serv.id)
+                  );
+                } else {
+                  setServiciosSeleccionados((prev) => [
+                    ...prev,
+                    serv.id,
+                  ]);
+                }
+              }}
+            >
+              <Text style={styles.checkboxText}>{serv.nombre}</Text>
+            </TouchableOpacity>
+          </View>
+        );
+      })}
 
       <TextInput
         placeholder="Contraseña"
@@ -216,4 +241,34 @@ const styles = StyleSheet.create({
     height: 50,
     width: "100%",
   },
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: "bold",
+    color: "#000",
+    marginBottom: 10,
+    width: "90%",
+    textAlign: "left",
+  },
+  checkboxContainer: {
+    borderWidth: 1,
+    borderColor: "#4CAF50",
+    borderRadius: 8,
+    padding: 12,
+    width: "90%",
+    marginBottom: 8,
+    backgroundColor: "#fff",
+  },
+  checkboxSelected: {
+    backgroundColor: "#E8F5E8",
+    borderColor: "#4CAF50",
+  },
+  checkboxText: {
+    fontSize: 16,
+    color: "#000",
+  },
+  servicioContainer: {
+    width: "90%",
+    marginBottom: 12,
+  },
+  // inputPrecio removed as prices are handled in profile
 });

@@ -58,33 +58,11 @@ const computeStars = (prom: number) => {
 };
 
 // --- Agrupar horarios por rango de tiempo
-function groupHorarios(horarios: any[]) {
-  const dayOrder = [
-    "Lunes",
-    "Miércoles",
-    "Martes",
-    "Jueves",
-    "Viernes",
-    "Sábado",
-    "Domingo",
-  ];
-  const map = new Map<string, string[]>();
-  horarios.forEach((h) => {
-    const key = `${h.hora_inicio}|${h.hora_finalizacion}`;
-    const arr = map.get(key) || [];
-    arr.push(h.dia_semana);
-    map.set(key, arr);
-  });
-  const groups = Array.from(map.entries()).map(([key, days]) => {
-    const [start, end] = key.split("|");
-    days.sort((a, b) => dayOrder.indexOf(a) - dayOrder.indexOf(b));
-    return { days, start, end };
-  });
-  groups.sort(
-    (a, b) =>
-      dayOrder.indexOf(a.days[0]) - dayOrder.indexOf(b.days[0])
-  );
-  return groups;
+function formatTime(timeString) {
+  const [hour, minute] = timeString.split(':').map(Number);
+  const ampm = hour >= 12 ? 'PM' : 'AM';
+  const formattedHour = hour % 12 || 12;
+  return `${formattedHour}:${String(minute).padStart(2, '0')} ${ampm}`;
 }
 
 export default function VerVeterinario() {
@@ -119,7 +97,29 @@ export default function VerVeterinario() {
     cargarDatos();
   }, [id]);
 
-  const horariosAgrupados = useMemo(() => groupHorarios(horarios), [horarios]);
+  const horariosPorDia = useMemo(() => {
+    const dayOrder = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"];
+    const grouped: Record<string, { start: string; end: string }[]> = {};
+    horarios.forEach((h) => {
+      if (!grouped[h.dia_semana]) {
+        grouped[h.dia_semana] = [];
+      }
+      grouped[h.dia_semana].push({ start: h.hora_inicio, end: h.hora_finalizacion });
+    });
+    // Sort blocks by start time for each day
+    for (const day in grouped) {
+      grouped[day].sort((a, b) => a.start.localeCompare(b.start));
+    }
+    
+    const sortedGrouped: Record<string, { start: string; end: string }[]> = {};
+    dayOrder.forEach(day => {
+      if (grouped[day]) {
+        sortedGrouped[day] = grouped[day];
+      }
+    });
+
+    return sortedGrouped;
+  }, [horarios]);
 
   // 🔹 Mostrar estrellas
   const renderEstrellas = (promedio: number) => {
@@ -242,7 +242,7 @@ export default function VerVeterinario() {
             <Image
               source={
                 veterinario.foto
-                  ? { uri: veterinario.foto }
+                  ? { uri: `${BASE_URL}/pethub/${veterinario.foto}` }
                   : require("../../assets/images/navegacion/foto.png")
               }
               style={styles.foto}
@@ -278,12 +278,16 @@ export default function VerVeterinario() {
 
         <View style={styles.contenedorTexto}>
           <Text style={styles.titulo}>Horarios</Text>
-          {horariosAgrupados.length > 0 ? (
-            horariosAgrupados.map((g, idx) => (
-              <Text key={idx} style={styles.horarioTexto}>
-                <Text style={styles.horarioDia}>{g.days.join(", ")}: </Text>
-                {g.start && g.end ? `${g.start} – ${g.end}` : "Cerrado"}
-              </Text>
+          {Object.keys(horariosPorDia).length > 0 ? (
+            Object.entries(horariosPorDia).map(([dia, bloques]) => (
+              <View key={dia} style={{ marginBottom: 5 }}>
+                <Text style={styles.horarioDia}>{dia}:</Text>
+                {bloques.map((bloque, idx) => (
+                  <Text key={idx} style={styles.horarioTexto}>
+                    {formatTime(bloque.start)} – {formatTime(bloque.end)}
+                  </Text>
+                ))}
+              </View>
             ))
           ) : (
             <Text style={styles.horarioTexto}>Cerrado</Text>
@@ -408,8 +412,10 @@ const styles = StyleSheet.create({
   contenedorTexto: { padding: 16 },
   titulo: { fontWeight: "bold", fontSize: 16, color: "#000", marginBottom: 8 },
   descripcion: { fontSize: 14, color: "#555", lineHeight: 20 },
-  horarioTexto: { fontSize: 14, color: "#333", marginBottom: 4 },
-  horarioDia: { fontWeight: "bold" },
+  horarioTexto: { fontSize: 14, color: "#555", marginLeft: 10, marginBottom: 3 },
+  horarioDia: { fontWeight: "bold", fontSize: 15, color: "#333" },
+  servicioNombre: { fontWeight: "bold", fontSize: 15, color: "#333" },
+  servicioDetalle: { fontSize: 14, color: "#555", marginLeft: 10, marginBottom: 3 },
   picker: { backgroundColor: "#f4f4f4", borderRadius: 8, marginTop: 8 },
   horasScroll: { marginVertical: 12, paddingHorizontal: 16 },
   hora: { borderWidth: 1, borderColor: "#ccc", borderRadius: 10, paddingVertical: 10, paddingHorizontal: 14, marginRight: 10 },

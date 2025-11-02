@@ -1,5 +1,6 @@
 import React from 'react';
 import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { BASE_URL } from '@/config/api';
 
 export interface Veterinario {
   id: string;
@@ -7,6 +8,7 @@ export interface Veterinario {
   foto: string;
   promedio_calificaciones: number;
   total_resenas: number;
+  servicios_ofrecidos: string;
 }
 
 interface Props {
@@ -51,7 +53,7 @@ export default function TarjetaVeterinario({ veterinario, onPress }: Props) {
       <Image
         source={
           veterinario.foto
-            ? { uri: veterinario.foto }
+            ? { uri: `${BASE_URL}/pethub/${veterinario.foto}` }
             : require('../assets/images/navegacion/foto.png')
         }
         style={styles.foto}
