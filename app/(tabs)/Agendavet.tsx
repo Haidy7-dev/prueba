@@ -6,15 +6,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import axios from "axios";
 import { useRouter } from "expo-router";
 import React, { useEffect, useState } from "react";
-import {
-  ActivityIndicator,
-  SafeAreaView,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
-} from "react-native";
+import {ActivityIndicator,SafeAreaView,ScrollView,StyleSheet,Text,TouchableOpacity,View,} from "react-native";
 
 interface Cita {
   id: string;
@@ -29,6 +21,7 @@ interface Cita {
 }
 
 export default function AgendaVet() {
+  console.log("AgendaVet component rendered");
   const [citas, setCitas] = useState<Cita[]>([]);
   const [loading, setLoading] = useState(true);
   const [tab, setTab] = useState<"pasadas" | "futuras">("pasadas");
@@ -47,14 +40,16 @@ export default function AgendaVet() {
       const response = await axios.get(`${BASE_URL}/api/citasVeterinario/${idVet}`);
       const citasData: Cita[] = response.data;
 
-      const ahora = new Date();
-
       const citasProcesadas = citasData.map((cita) => {
-        const fechaHoraInicio = new Date(`${cita.fecha}T${cita.hora_inicio}`);
-        return { ...cita, esPasada: fechaHoraInicio < ahora };
+        const ahora = new Date();
+        const fechaFormateada = cita.fecha.split('T')[0];
+        const citaFechaHora = new Date(`${fechaFormateada}T${cita.hora_inicio}`);
+
+        return { ...cita, esPasada: citaFechaHora < ahora };
       });
 
       setCitas(citasProcesadas);
+      console.log("Citas fetched and set:", citasProcesadas);
     } catch (error) {
       console.error("❌ Error al obtener citas:", error);
     } finally {
@@ -77,9 +72,13 @@ export default function AgendaVet() {
     }
   };
 
-  const citasFiltradas = citas.filter((c) =>
-    tab === "pasadas" ? c.esPasada : !c.esPasada
-  );
+  const citasFiltradas = citas.filter((c) => {
+    if (tab === "pasadas") {
+      return c.esPasada;
+    } else { // tab === "futuras"
+      return !c.esPasada;
+    }
+  });
 
   if (loading) {
     return (
@@ -109,7 +108,7 @@ export default function AgendaVet() {
           onPress={() => setTab("futuras")}
         >
           <Text style={[styles.tabTexto, tab === "futuras" && styles.tabTextoActivo]}>
-            Citas futuras
+            Citas Futuras
           </Text>
         </TouchableOpacity>
       </View>
@@ -120,7 +119,7 @@ export default function AgendaVet() {
         showsVerticalScrollIndicator={false}
       >
         {citasFiltradas.length === 0 ? (
-          <Text style={styles.noCitas}>No hay citas {tab}.</Text>
+          <Text style={styles.noCitas}>No hay citas {tab === "pasadas" ? "pasadas" : "futuras"}.</Text>
         ) : (
           citasFiltradas.map((item) => (
             <MascotaCard
@@ -134,8 +133,9 @@ export default function AgendaVet() {
                   ? { uri: item.foto }
                   : require("../../assets/images/navegacion/foto.png")
               }
+              buttonColor="gray"
               botones={
-                tab === "pasadas"
+                tab === "pasadas" && item.id_estado_cita === 1
                   ? [
                       {
                         texto: "Culminó",
@@ -148,15 +148,9 @@ export default function AgendaVet() {
                     ]
                   : []
               }
-              onPress={
-                tab === "futuras"
-                  ? () =>
-                      router.push({
-                        pathname: "/DetalleCita",
-                        params: { idCita: item.id },
-                      })
-                  : undefined
-              }
+              isCompleted={tab === "futuras"}
+              appointmentId={tab === "futuras" ? item.id : undefined}
+              estado={item.id_estado_cita}
             />
           ))
         )}

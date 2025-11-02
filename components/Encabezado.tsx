@@ -1,18 +1,149 @@
-// src/componentes/Encabezado.tsx
-import { AntDesign } from "@expo/vector-icons"; // ícono X
+import React, { useEffect, useState } from "react";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import NotificationCard from "./NotificationCard";
+import axios from "axios";
+import { BASE_URL } from "@/config/api";
 import { BlurView } from "expo-blur";
-import React, { useState } from "react";
-import {Image,Modal, ScrollView, StyleSheet, Text, TouchableOpacity, View,} from "react-native";
+import { AntDesign } from "@expo/vector-icons";
+import {
+  Image,
+  Modal,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
+
+interface Appointment {
+  id: string;
+  fecha: string;
+  hora_inicio: string;
+  nombreMascota?: string; // For vet notifications
+  nombreVeterinario?: string; // For user notifications
+}
+
+interface DynamicNotification {
+  id: string;
+  message: string;
+  icon: any; // ImageSourcePropType
+  type: "new_appointment" | "upcoming_appointment" | "appointment_tomorrow";
+}
+
+// 🔹 Función para formatear fecha legible
+function formatearFecha(fecha: string) {
+  return new Date(fecha).toLocaleDateString("es-ES", {
+    weekday: "long",
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+  });
+}
 
 export default function Encabezado() {
   const [modalVisible, setModalVisible] = useState(false);
+  const [userRole, setUserRole] = useState<string | null>(null);
+  const [userId, setUserId] = useState<string | null>(null);
+  const [dynamicNotifications, setDynamicNotifications] = useState<DynamicNotification[]>([]);
+  const [hasNewNotifications, setHasNewNotifications] = useState(false);
 
-  // Ejemplo estático de notificaciones (puedes reemplazar por datos de tu API)
-  const notificaciones = [
-    "¡Ya es momento de desparasitar a tu mascota!",
-    "Hay nuevas promociones en vacunas para la rabia. ¡Míralas ya!",
-    "¡Recuerda actualizar tu perfil!",
+  useEffect(() => {
+    const fetchUserData = async () => {
+      const role = await AsyncStorage.getItem("userType");
+      const id = await AsyncStorage.getItem("userId");
+      setUserRole(role);
+      setUserId(id);
+      console.log("Fetched User Role:", role);
+      console.log("Fetched User ID:", id);
+    };
+    fetchUserData();
+  }, []);
+
+  useEffect(() => {
+    const fetchAppointmentsAndGenerateNotifications = async () => {
+      try {
+        let appointments: Appointment[] = [];
+        if (userRole === "veterinario") {
+          const response = await axios.get(`${BASE_URL}/api/citasVeterinario/${userId}`);
+          appointments = response.data;
+        } else if (userRole === "usuario") {
+          const response = await axios.get(`${BASE_URL}/api/citasDueno/${userId}`);
+          appointments = response.data;
+        }
+
+        const now = new Date();
+        const newNotifs: DynamicNotification[] = [];
+
+        appointments.forEach((appointment) => {
+          const appointmentDateTime = new Date(`${appointment.fecha}T${appointment.hora_inicio}`);
+
+          // Notification: Appointment starting in 20 minutes
+          const twentyMinutesBefore = new Date(appointmentDateTime.getTime() - 20 * 60 * 1000);
+          if (now >= twentyMinutesBefore && now < appointmentDateTime) {
+            newNotifs.push({
+              id: `upcoming-${appointment.id}`,
+              message: `Tu cita comenzará pronto, ¡prepárate!`, // Generic message for now
+              icon: require("../assets/images/navegacion/campana.png"),
+              type: "upcoming_appointment",
+            });
+          }
+
+          // Notification: Appointment tomorrow (for user)
+          if (userRole === "usuario") {
+            const tomorrow = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1);
+            const appointmentDate = new Date(appointmentDateTime.getFullYear(), appointmentDateTime.getMonth(), appointmentDateTime.getDate());
+            if (appointmentDate.getTime() === tomorrow.getTime()) {
+              newNotifs.push({
+                id: `tomorrow-${appointment.id}`,
+                message: `Tu mascota tiene programada una cita mañana, ¡Revísala en tu agenda!`, // Generic message for now
+                icon: require("../assets/images/navegacion/campana.png"),
+                type: "appointment_tomorrow",
+              });
+            }
+          }
+
+          // Notification: New appointment (for vet) - within 7 days
+          const diferenciaDias = Math.floor((appointmentDateTime.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+          if (userRole === "veterinario" && diferenciaDias >= 0 && diferenciaDias <= 7) {
+            newNotifs.push({
+              id: `new-vet-${appointment.id}`,
+              message: `Tienes una nueva cita para el ${formatearFecha(appointment.fecha)}, ¡Revísala en tu agenda!`,
+              icon: require("../assets/images/navegacion/campana.png"),
+              type: "new_appointment",
+            });
+          }
+        });
+
+        setDynamicNotifications(newNotifs);
+        setHasNewNotifications(newNotifs.length > 0); // Update red dot status
+      } catch (error) {
+        console.error("Error fetching appointments or generating notifications:", error);
+      }
+    };
+
+    if (userId && userRole) {
+      fetchAppointmentsAndGenerateNotifications();
+      // Refresh notifications every minute
+      const interval = setInterval(fetchAppointmentsAndGenerateNotifications, 60 * 1000);
+      return () => clearInterval(interval);
+    }
+  }, [userId, userRole]);
+
+  // Notificaciones fijas para veterinarios
+  const fixedVetNotifications = [
+    { id: "vet-fixed-1", message: "¡Recuerda actualizar tu perfil!", icon: require("../assets/images/navegacion/campana.png") },
+    { id: "vet-fixed-2", message: "¡Recuerda estar pendiente de tus citas!", icon: require("../assets/images/navegacion/campana.png") },
   ];
+
+  // Notificaciones fijas para usuarios
+  const fixedUserNotifications = [
+    { id: "user-fixed-1", message: "¡Recuerda actualizar tu perfil!", icon: require("../assets/images/navegacion/campana.png") },
+    { id: "user-fixed-2", message: "¡Agenda una cita de chequeo para tu mascota!", icon: require("../assets/images/navegacion/campana.png") },
+  ];
+
+  const handleDismissNotification = (id: string) => {
+    setDynamicNotifications((prevNotifs) => prevNotifs.filter((notif) => notif.id !== id));
+  };
 
   return (
     <View style={styles.header}>
@@ -24,12 +155,13 @@ export default function Encabezado() {
       />
 
       {/* CAMPANA COMO BOTÓN */}
-      <TouchableOpacity onPress={() => setModalVisible(true)}>
+      <TouchableOpacity onPress={() => setModalVisible(true)} style={styles.campanaContainer}>
         <Image
           source={require("../assets/images/navegacion/campana.png")}
           style={styles.campana}
           resizeMode="contain"
         />
+        {hasNewNotifications && <View style={styles.redDot} />}
       </TouchableOpacity>
 
       {/* MODAL DE NOTIFICACIONES */}
@@ -58,18 +190,34 @@ export default function Encabezado() {
 
             {/* Lista de notificaciones */}
             <ScrollView style={styles.listContainer} contentContainerStyle={{ paddingVertical: 8 }}>
-              {notificaciones.map((texto, idx) => (
-                <View key={idx} style={styles.notificationBox}>
-                  {/* icono de notificación (PNG) */}
-                  <Image
-                    source={require("../assets/images/navegacion/icononotificacion.png")}
-                    style={styles.iconoNotificacion}
-                    resizeMode="contain"
+              {userRole === "veterinario" &&
+                fixedVetNotifications.map((notif) => (
+                  <NotificationCard
+                    key={notif.id}
+                    id={notif.id}
+                    message={notif.message}
+                    icon={notif.icon}
                   />
+                ))}
 
-                  {/* texto */}
-                  <Text style={styles.notificationText}>{texto}</Text>
-                </View>
+              {userRole === "usuario" &&
+                fixedUserNotifications.map((notif) => (
+                  <NotificationCard
+                    key={notif.id}
+                    id={notif.id}
+                    message={notif.message}
+                    icon={notif.icon}
+                  />
+                ))}
+
+              {dynamicNotifications.map((notif) => (
+                <NotificationCard
+                  key={notif.id}
+                  id={notif.id}
+                  message={notif.message}
+                  icon={notif.icon}
+                  onDismiss={handleDismissNotification}
+                />
               ))}
             </ScrollView>
 
@@ -108,6 +256,18 @@ const styles = StyleSheet.create({
   campana: {
     width: 30,                      
     height: 35,                    
+  },
+  campanaContainer: {
+    position: "relative",
+  },
+  redDot: {
+    position: "absolute",
+    top: 0,
+    right: 0,
+    backgroundColor: "red",
+    borderRadius: 5,
+    width: 10,
+    height: 10,
   },
   blurContainer: {
     flex: 1,                        // Ocupar toda la pantalla
@@ -153,24 +313,6 @@ const styles = StyleSheet.create({
   },
   listContainer: {
     maxHeight: 300,                 // Altura máxima del scroll antes de que empiece a desplazarse
-  },
-  notificationBox: {
-    flexDirection: "row",           // Icono y texto en línea horizontal
-    alignItems: "center",           // Centra verticalmente el icono y el texto
-    paddingVertical: 12,            // Espaciado interno vertical
-    paddingHorizontal: 14,          // Espaciado interno lateral
-    borderBottomWidth: 1,           // Línea separadora entre notificaciones
-    borderBottomColor: "#000000",   
-  },
-  iconoNotificacion: {
-    width: 38,                      
-    height: 38,                     
-    marginRight: 12,                // Espacio entre el icono y el texto
-  },
-  notificationText: {
-    flex: 1,                        // Hace que el texto ocupe el espacio restante de la fila
-    color: "#000000",             
-    fontSize: 14,                   
   },
   footer: {
     paddingHorizontal: 14,          // Espaciado lateral

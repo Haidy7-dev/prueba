@@ -33,8 +33,8 @@ LocaleConfig.locales['es'] = {
     'Diciembre'
   ],
   monthNamesShort: ['Ene.', 'Feb.', 'Mar.', 'Abr.', 'May.', 'Jun.', 'Jul.', 'Ago.', 'Sep.', 'Oct.', 'Nov.', 'Dic.'],
-  dayNames: ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'],
-  dayNamesShort: ['Dom.', 'Lun.', 'Mar.', 'Mié.', 'Jue.', 'Vie.', 'Sáb.'],
+  dayNames: ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'],
+  dayNamesShort: ['Lun.', 'Mar.', 'Mié.', 'Jue.', 'Vie.', 'Sáb.', 'Dom.'],
   today: 'Hoy'
 };
 LocaleConfig.defaultLocale = 'es';
@@ -58,7 +58,7 @@ const computeStars = (prom: number) => {
 };
 
 // --- Agrupar horarios por rango de tiempo
-function formatTime(timeString) {
+function formatTime(timeString: string) {
   const [hour, minute] = timeString.split(':').map(Number);
   const ampm = hour >= 12 ? 'PM' : 'AM';
   const formattedHour = hour % 12 || 12;
@@ -199,6 +199,7 @@ export default function VerVeterinario() {
         id_usuario,
         id_mascota,
         modalidad: "Presencial",
+        id_estado_cita: 1, // Establecer estado como 'Pendiente'
       };
 
       console.log("📤 Enviando cita:", payload);
@@ -317,6 +318,7 @@ export default function VerVeterinario() {
           <View style={styles.calendarContainer}>
             <Calendar
               minDate={todayStr}
+              firstDay={1}
               onDayPress={(day) => {
                 const diaSemana = getDiaSemana(day.dateString);
                 if (diasDisponibles.includes(diaSemana)) {
@@ -336,11 +338,11 @@ export default function VerVeterinario() {
                 textDayFontSize: 16,
                 textMonthFontSize: 18,
                 textDayHeaderFontSize: 14,
-                'stylesheet.calendar.header': {
-                  week: {
-                    marginTop: 5,
-                    flexDirection: 'row',
-                    justifyContent: 'space-between'
+                stylesheet: {
+                  calendar: {
+                    header: {
+                      
+                    }
                   }
                 }
               }}

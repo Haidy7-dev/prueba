@@ -33,7 +33,7 @@ interface Cita {
 export default function AgendaDueno() {
   const [citas, setCitas] = useState<Cita[]>([]);
   const [loading, setLoading] = useState(true);
-  const [tab, setTab] = useState<"pendientes" | "completadas">("pendientes");
+  const [tab, setTab] = useState<"pendientes" | "pasadas">("pendientes");
 
   const router = useRouter();
 
@@ -73,10 +73,17 @@ export default function AgendaDueno() {
     }
   };
 
-  const citasPendientes = citas.filter((c) => c.id_estado_cita !== 2);
-  const citasCompletadas = citas.filter((c) => c.id_estado_cita === 2);
+  const ahora = new Date();
+  const citasPendientes = citas.filter((c) => {
+    const fechaHoraInicio = new Date(`${c.fecha.split('T')[0]}T${c.hora_inicio}`);
+    return fechaHoraInicio > ahora;
+  });
+  const citasPasadas = citas.filter((c) => {
+    const fechaHoraInicio = new Date(`${c.fecha.split('T')[0]}T${c.hora_inicio}`);
+    return fechaHoraInicio <= ahora;
+  });
 
-  const citasFiltradas = tab === "pendientes" ? citasPendientes : citasCompletadas;
+  const citasFiltradas = tab === "pendientes" ? citasPendientes : citasPasadas;
 
   if (loading && citas.length === 0) {
     return (
@@ -102,11 +109,11 @@ export default function AgendaDueno() {
         </TouchableOpacity>
 
         <TouchableOpacity
-          style={[styles.tab, tab === "completadas" && styles.tabActivo]}
-          onPress={() => setTab("completadas")}
+          style={[styles.tab, tab === "pasadas" && styles.tabActivo]}
+          onPress={() => setTab("pasadas")}
         >
-          <Text style={[styles.tabTexto, tab === "completadas" && styles.tabTextoActivo]}>
-            Citas completadas
+          <Text style={[styles.tabTexto, tab === "pasadas" && styles.tabTextoActivo]}>
+            Citas pasadas
           </Text>
         </TouchableOpacity>
       </View>
@@ -123,27 +130,28 @@ export default function AgendaDueno() {
             const estaCulminada = item.id_estado_cita === 2;
 
             const ahora = new Date();
-            const fechaHoraFin = new Date(`${item.fecha.split('T')[0]}T${item.hora_finalizacion}`);
-            const esPasada = fechaHoraFin < ahora;
+            const fechaHoraInicio = new Date(`${item.fecha.split('T')[0]}T${item.hora_inicio}`);
+            const esPasada = fechaHoraInicio <= ahora;
 
             const botones = [];
-            if (tab === 'pendientes' && !estaCulminada) {
-              botones.push({
-                texto: "Culminar",
-                onPress: esPasada ? () => marcarComoCulminada(item.id) : undefined,
-                disabled: !esPasada,
-              });
-            } else if (tab === 'completadas' && estaCulminada && item.calificada === 0) {
-              botones.push({
-                texto: "Calificar",
-                onPress: () => router.push({
-                  pathname: "/Calificar",
-                  params: { 
-                    idCita: item.id, 
-                    idVeterinario: item.id_veterinario_o_zootecnista 
-                  },
-                }),
-              });
+            if (tab === 'pasadas') {
+              if (!estaCulminada) {
+                botones.push({
+                  texto: "Culminar",
+                  onPress: () => marcarComoCulminada(item.id),
+                });
+              } else if (item.calificada === 0) {
+                botones.push({
+                  texto: "Calificar",
+                  onPress: () => router.push({
+                    pathname: "/Calificar",
+                    params: {
+                      idCita: item.id,
+                      idVeterinario: item.id_veterinario_o_zootecnista
+                    },
+                  }),
+                });
+              }
             }
 
             return (
@@ -151,7 +159,7 @@ export default function AgendaDueno() {
                 key={item.id}
                 nombre={item.nombre_mascota}
                 hora={`${item.hora_inicio} - ${item.hora_finalizacion}`}
-                fecha={new Date(item.fecha).toLocaleDateString("es-CO", { timeZone: 'UTC' })}
+                fecha={new Date(item.fecha).toLocaleDateString("es-CO", { timeZone: 'America/Bogota' })}
                 tipo={item.nombre_servicio}
                 foto={
                   item.foto

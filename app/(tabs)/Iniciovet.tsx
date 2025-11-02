@@ -38,7 +38,10 @@ export default function InicioVet() {
       }
 
       const response = await axios.get(`${BASE_URL}/api/citasVeterinario/${idVet}`);
-      setCitas(response.data);
+      const today = new Date();
+      const todayString = today.toISOString().split('T')[0];
+      const citasHoy = response.data.filter(cita => cita.fecha.split('T')[0] === todayString);
+      setCitas(citasHoy);
     } catch (error) {
       console.error("❌ Error al obtener las citas:", error);
     } finally {

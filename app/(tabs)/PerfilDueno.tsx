@@ -1,4 +1,5 @@
 import BotonGeneral from "@/components/BotonGeneral";
+import Encabezado from "@/components/Encabezado";
 import { BASE_URL } from "@/config/api";
 import { Feather } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -128,20 +129,7 @@ export default function PerfilDueno() {
   return (
     <View style={styles.container}>
       {/* --- ENCABEZADO --- */}
-      <View style={styles.header}>
-        <Image
-          source={require("../../assets/images/navegacion/Pata.png")}
-          style={styles.logo}
-          resizeMode="contain"
-        />
-        <TouchableOpacity onPress={() => router.push("/")}>
-          <Image
-            source={require("../../assets/images/navegacion/iconosalir.png")}
-            style={styles.iconSalir}
-            resizeMode="contain"
-          />
-        </TouchableOpacity>
-      </View>
+      <Encabezado />
 
       {/* --- CONTENIDO PRINCIPAL --- */}
       <ScrollView contentContainerStyle={styles.content}>
@@ -210,16 +198,6 @@ export default function PerfilDueno() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: "#FFFFFF" },
-  header: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    paddingHorizontal: 30,
-    paddingTop: 40,
-    paddingBottom: 5,
-  },
-  logo: { width: 40, height: 50 },
-  iconSalir: { width: 30, height: 30 },
   content: {
     alignItems: "center",
     paddingVertical: 20,

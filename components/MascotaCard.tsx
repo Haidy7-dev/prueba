@@ -22,9 +22,12 @@ interface MascotaCardProps {
   tipo: string;
   foto: ImageSourcePropType;
   botones?: BotonAccion[];
+  buttonColor?: string;
   // New props for internal navigation
   isCompleted?: boolean;
   appointmentId?: string;
+  estado?: number | null;
+  onPress?: () => void;
 }
 
 export default function MascotaCard({
@@ -36,6 +39,9 @@ export default function MascotaCard({
   botones = [],
   isCompleted,
   appointmentId,
+  estado,
+  onPress,
+  buttonColor,
 }: MascotaCardProps) {
   const router = useRouter();
 
@@ -48,12 +54,27 @@ export default function MascotaCard({
     }
   };
 
+  const getEstadoText = (estado: number | null) => {
+    switch (estado) {
+      case 1:
+        return "Pendiente";
+      case 2:
+        return "Culminada";
+      case 3:
+        return "No asistió";
+      case 4:
+        return "Cancelada";
+      default:
+        return "Desconocido";
+    }
+  };
+
   return (
     <TouchableOpacity
       activeOpacity={isCompleted ? 0.8 : 1}
-      onPress={handleCardPress}
+      onPress={onPress || handleCardPress}
       style={styles.card}
-      disabled={!isCompleted}
+      disabled={!isCompleted && !onPress}
     >
       <View style={styles.infoContainer}>
         <Image source={foto} style={styles.foto} />
@@ -62,6 +83,9 @@ export default function MascotaCard({
           <Text style={styles.detalle}>⏰ {hora}</Text>
           <Text style={styles.detalle}>📅 {fecha}</Text>
           <Text style={styles.detalle}>🩺 {tipo}</Text>
+          {estado !== undefined && estado !== null && (
+            <Text style={styles.detalle}>Estado: {getEstadoText(estado)}</Text>
+          )}
         </View>
       </View>
 
@@ -72,7 +96,11 @@ export default function MascotaCard({
               key={index}
               style={[
                 styles.boton,
-                boton.disabled ? styles.botonDisabled : styles.botonEnabled,
+                boton.disabled
+                  ? styles.botonDisabled
+                  : buttonColor
+                  ? { backgroundColor: buttonColor }
+                  : styles.botonEnabled,
               ]}
               onPress={boton.onPress}
               disabled={boton.disabled || !boton.onPress}

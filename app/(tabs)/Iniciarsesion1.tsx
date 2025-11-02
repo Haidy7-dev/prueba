@@ -188,7 +188,7 @@ const IniciarSesion1: React.FC = () => {
                   style={styles.video}
                   resizeMode={ResizeMode.CONTAIN}
                   shouldPlay
-                  isLooping={false}
+                  isLooping
                 />
               </Animated.View>
             ) : (

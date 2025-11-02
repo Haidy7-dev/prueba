@@ -1,5 +1,6 @@
 import BotonGeneral from "@/components/BotonGeneral";
 import MenuVet from "@/components/MenuVet";
+import ResumenCitaCard from "@/components/ResumenCitaCard";
 import { BASE_URL } from "@/config/api";
 import { Feather } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -12,7 +13,7 @@ import { Alert, Image, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity
 
 export default function PerfilVeterinario() {
   const router = useRouter();
-  
+
   const [idVet, setIdVet] = useState<string | null>(null);
   const [primerNombre, setPrimerNombre] = useState("");
   const [segundoNombre, setSegundoNombre] = useState("");
@@ -29,6 +30,8 @@ export default function PerfilVeterinario() {
   const [servicios, setServicios] = useState<any[]>([]);
   const [serviciosSeleccionados, setServiciosSeleccionados] = useState<any[]>([]);
   const [serviciosList, setServiciosList] = useState<any[]>([]);
+  const [citasHoy, setCitasHoy] = useState<any[]>([]);
+  const [loadingCitas, setLoadingCitas] = useState(false);
 
   // ✅ Cargar veterinario desde backend
   useEffect(() => {
@@ -71,6 +74,43 @@ export default function PerfilVeterinario() {
     };
     cargarDatos();
   }, []);
+
+  // ✅ Cargar citas de hoy
+  useEffect(() => {
+    if (idVet) {
+      const cargarCitasHoy = async () => {
+        setLoadingCitas(true);
+        try {
+          const response = await axios.get(`${BASE_URL}/api/citasVeterinario/${idVet}`);
+          const citasData = response.data;
+
+          const hoy = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
+
+          const citasHoyFiltradas = citasData.filter((cita: any) => cita.fecha === hoy);
+
+          // Cargar resumen completo para cada cita
+          const citasConResumen = await Promise.all(
+            citasHoyFiltradas.map(async (cita: any) => {
+              try {
+                const resumenResponse = await axios.get(`${BASE_URL}/api/resumencitas/${cita.id}`);
+                return resumenResponse.data;
+              } catch (error) {
+                console.error(`Error cargando resumen para cita ${cita.id}:`, error);
+                return null;
+              }
+            })
+          );
+
+          setCitasHoy(citasConResumen.filter(cita => cita !== null));
+        } catch (error) {
+          console.error("Error al cargar citas de hoy:", error);
+        } finally {
+          setLoadingCitas(false);
+        }
+      };
+      cargarCitasHoy();
+    }
+  }, [idVet]);
 
   // ✅ Cargar lista de especializaciones
   useEffect(() => {
@@ -162,7 +202,7 @@ export default function PerfilVeterinario() {
 
     if (!resultado.canceled) {
       const uri = resultado.assets[0].uri;
-      
+
       if (idVet) {
         const formData = new FormData();
       const fileName = uri.split('/').pop() || 'foto.jpg';
@@ -326,6 +366,35 @@ export default function PerfilVeterinario() {
           );
         })}
 
+        {/* Nueva sección: Citas de Hoy */}
+        <Text style={styles.sectionTitle}>Citas de Hoy</Text>
+        {loadingCitas ? (
+          <Text style={styles.loadingText}>Cargando citas...</Text>
+        ) : citasHoy.length === 0 ? (
+          <Text style={styles.noCitasText}>No hay citas programadas para hoy.</Text>
+        ) : (
+          citasHoy.map((cita) => (
+            <ResumenCitaCard
+              key={cita.id_cita}
+              nombre_mascota={cita.nombre_mascota}
+              sexo_mascota={cita.sexo_mascota}
+              nombre_servicio={cita.nombre_servicio}
+              precio_servicio={cita.precio_servicio}
+              modalidad={cita.modalidad}
+              hora_inicio={cita.hora_inicio}
+              hora_finalizacion={cita.hora_finalizacion}
+              iva={cita.iva}
+              total={cita.total}
+              nombre_usuario={cita.nombre_usuario}
+              correo_usuario={cita.correo_usuario}
+              nombre_veterinario={cita.nombre_veterinario}
+              correo_veterinario={cita.correo_veterinario}
+              lugar={cita.lugar}
+              fotoMascota={cita.fotoMascota}
+            />
+          ))
+        )}
+
         <View style={styles.botonesContainer}>
           <BotonGeneral title="Guardar" onPress={manejarGuardar} />
           <Text style={styles.infoText}>
@@ -432,5 +501,17 @@ const styles = StyleSheet.create({
     width: "100%",
     marginTop: 8,
     minHeight: 50,
+  },
+  loadingText: {
+    fontSize: 16,
+    color: "#666",
+    textAlign: "center",
+    marginVertical: 20,
+  },
+  noCitasText: {
+    fontSize: 16,
+    color: "#666",
+    textAlign: "center",
+    marginVertical: 20,
   },
 });
