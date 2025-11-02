@@ -95,6 +95,36 @@ export default function PerfilMascota() {
     }
   };
 
+  // --- SUBIR FOTO SI ES NUEVA ---
+  const subirFotoSiNueva = async () => {
+    if (!fotoPerfil || (!fotoPerfil.startsWith('file://') && !fotoPerfil.startsWith('content://'))) {
+      // No es una foto nueva, devolver la existente
+      return fotoPerfil;
+    }
+
+    try {
+      const formData = new FormData();
+      formData.append('foto', {
+        uri: fotoPerfil,
+        type: 'image/jpeg', // Ajustar según el tipo si es necesario
+        name: 'foto.jpg',
+      } as any);
+
+      const response = await axios.post(`${BASE_URL}/upload/mascota/${id}`, formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+
+      console.log("📤 Foto subida:", response.data);
+      return response.data.ruta; // Retornar la ruta del archivo subido
+    } catch (error: any) {
+      console.log("❌ Error al subir foto:", error.response?.data || error.message);
+      // En caso de error, devolver la foto existente para no perderla
+      return fotoPerfil;
+    }
+  };
+
   // --- GUARDAR INFORMACIÓN ---
   const manejarGuardar = async () => {
     try {
@@ -103,18 +133,24 @@ export default function PerfilMascota() {
         return;
       }
 
+      // Subir foto si es nueva
+      const rutaFoto = await subirFotoSiNueva();
+
       const payload = {
         nombre,
         peso,
         sexo,
         edad,
-        raza: razaSeleccionada,
-        foto: fotoPerfil,
+        id_raza: razaSeleccionada,
+        foto: rutaFoto,
       };
 
       console.log("📤 Enviando datos al backend:", payload);
 
-      await axios.put(`${BASE_URL}/api/perfilMascota/${id}`, payload);
+      await axios.put(`${BASE_URL}/api/mascota/${id}`, payload);
+
+      // Actualizar el estado de la foto para refrescar la imagen mostrada
+      setFotoPerfil(rutaFoto);
 
       Alert.alert("Éxito", "El perfil de tu mascota ha sido guardado correctamente.");
     } catch (error: any) {

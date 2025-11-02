@@ -62,12 +62,21 @@ export default function AgendaVet() {
   }, []);
 
   const actualizarEstado = async (idCita: string, estado: number) => {
+    const originalCitas = [...citas];
+    const newCitas = citas.map((cita) => {
+      if (cita.id === idCita) {
+        return { ...cita, id_estado_cita: estado };
+      }
+      return cita;
+    });
+    setCitas(newCitas);
+
     try {
       await axios.put(`${BASE_URL}/api/citasVeterinario/${idCita}/estado`, {
         estado,
       });
-      getCitas();
     } catch (error) {
+      setCitas(originalCitas);
       console.error("❌ Error al actualizar estado:", error);
     }
   };
@@ -133,17 +142,22 @@ export default function AgendaVet() {
                   ? { uri: item.foto }
                   : require("../../assets/images/navegacion/foto.png")
               }
-              buttonColor="gray"
               botones={
-                tab === "pasadas" && item.id_estado_cita === 1
+                tab === "pasadas"
                   ? [
                       {
                         texto: "Culminó",
-                        onPress: () => actualizarEstado(item.id, 2),
+                        onPress: () => {
+                          actualizarEstado(item.id, 2);
+                        },
+                        disabled: item.id_estado_cita === 2,
                       },
                       {
                         texto: "No asistió",
-                        onPress: () => actualizarEstado(item.id, 3),
+                        onPress: () => {
+                          actualizarEstado(item.id, 3);
+                        },
+                        disabled: item.id_estado_cita === 3,
                       },
                     ]
                   : []

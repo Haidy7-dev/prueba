@@ -88,7 +88,7 @@ export default function AgendaDueno() {
   if (loading && citas.length === 0) {
     return (
       <View style={styles.loaderContainer}>
-        <ActivityIndicator size="large" color="#479454" />
+        <ActivityIndicator size="large" color="#7BBD92" />
         <Text style={styles.loaderText}>Cargando citas...</Text>
       </View>
     );
@@ -137,7 +137,7 @@ export default function AgendaDueno() {
             if (tab === 'pasadas') {
               if (!estaCulminada) {
                 botones.push({
-                  texto: "Culminar",
+                  texto: "Culminó",
                   onPress: () => marcarComoCulminada(item.id),
                 });
               } else if (item.calificada === 0) {
@@ -169,6 +169,7 @@ export default function AgendaDueno() {
                 botones={botones}
                 isCompleted={estaCulminada}
                 appointmentId={item.id}
+                estado={item.id_estado_cita}
               />
             );
           })
@@ -187,7 +188,7 @@ const styles = StyleSheet.create({
   scrollContent: { padding: 16, paddingBottom: 100 },
   noCitas: {
     textAlign: "center",
-    color: "#555",
+    color: "#7BBD92",
     fontSize: 16,
     marginTop: 20,
   },

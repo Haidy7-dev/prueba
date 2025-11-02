@@ -13,6 +13,7 @@ interface BotonAccion {
   texto: string;
   onPress?: () => void;
   disabled?: boolean;
+  color?: string;
 }
 
 interface MascotaCardProps {
@@ -91,23 +92,29 @@ export default function MascotaCard({
 
       {botones.length > 0 && (
         <View style={styles.botonesContainer}>
-          {botones.map((boton, index) => (
-            <TouchableOpacity
-              key={index}
-              style={[
-                styles.boton,
-                boton.disabled
-                  ? styles.botonDisabled
-                  : buttonColor
-                  ? { backgroundColor: buttonColor }
-                  : styles.botonEnabled,
-              ]}
-              onPress={boton.onPress}
-              disabled={boton.disabled || !boton.onPress}
-            >
-              <Text style={styles.textoBoton}>{boton.texto}</Text>
-            </TouchableOpacity>
-          ))}
+          {botones.map((boton, index) => {
+            return (
+              <TouchableOpacity
+                key={index}
+                style={[
+                  styles.boton,
+                  {
+                    backgroundColor:
+                      boton.texto === "Culminó" && estado === 2
+                        ? "#479454"
+                        : boton.texto === "No asistió" && estado === 3
+                        ? "#479454"
+                        : boton.disabled
+                        ? "#ccc"
+                        : "#E0E0E0",
+                  },
+                ]}
+                onPress={boton.onPress}
+              >
+                <Text style={styles.textoBoton}>{boton.texto}</Text>
+              </TouchableOpacity>
+            );
+          })}
         </View>
       )}
     </TouchableOpacity>
