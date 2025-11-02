@@ -31,7 +31,7 @@ export default function RegistroVeteri() {
   const [telefono, setTelefono] = useState("");
   const [direccionClinica, setDireccionClinica] = useState("");
   const [contrasena, setContrasena] = useState("");
-  const [especializacion, setEspecializacion] = useState<number | null>(null);
+  const [especializacion, setEspecializacion] = useState<string | null>(null);
   const [servicio, setServicio] = useState<number | null>(null);
 
   // Listas de opciones
@@ -144,12 +144,12 @@ export default function RegistroVeteri() {
       <View style={styles.pickerContainer}>
         <Picker
           selectedValue={especializacion}
-          onValueChange={(itemValue) => setEspecializacion(itemValue === "" ? null : Number(itemValue))}
+          onValueChange={(itemValue) => setEspecializacion(itemValue === "" ? null : itemValue)}
           style={styles.picker}
         >
           <Picker.Item label="Selecciona una especialización" value="" />
           {especializacionesList.map((esp) => (
-            <Picker.Item key={esp.id} label={esp.nombre} value={esp.id} />
+            <Picker.Item key={esp.id} label={esp.nombre} value={esp.nombre} />
           ))}
         </Picker>
       </View>

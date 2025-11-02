@@ -70,8 +70,13 @@ export default function Horariosvet() {
           });
         });
         setHorariosPorDia(agrupado);
-      } catch (error) {
-        console.error("Error cargando horarios:", error);
+      } catch (error: any) {
+        if (error.response && error.response.status === 404) {
+          // No schedules found, which is a valid case.
+          setHorariosPorDia({}); // Set to empty schedule
+        } else {
+          console.error("Error cargando horarios:", error);
+        }
       } finally {
         setCargando(false);
       }
@@ -113,7 +118,14 @@ export default function Horariosvet() {
       setCargando(true);
 
       // 🧹 Eliminar los horarios previos de este veterinario
-      await axios.delete(`${BASE_URL}/api/horarios/veterinario/${idVet}`);
+      try {
+        await axios.delete(`${BASE_URL}/api/horarios/veterinario/${idVet}`);
+      } catch (error: any) {
+        if (error.response && error.response.status !== 404) {
+          throw error; // Re-throw if it's not a 404 error
+        }
+        // If it's a 404, it means no schedules were found, which is fine.
+      }
 
       // 💾 Guardar nuevos bloques
       for (const dia of diasSeleccionados) {

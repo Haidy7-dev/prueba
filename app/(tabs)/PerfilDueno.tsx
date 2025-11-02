@@ -4,6 +4,7 @@ import { Feather } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import axios from "axios";
 import * as ImagePicker from "expo-image-picker";
+import { useRouter } from "expo-router";
 import React, { useEffect, useState } from "react";
 import { Alert, Image, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View, } from "react-native";
 import MenuDueno from "../../components/MenuDueno";
@@ -23,6 +24,7 @@ type PerfilUsuario = {
 };
 
 export default function PerfilDueno() {
+  const router = useRouter();
   const [perfil, setPerfil] = useState<PerfilUsuario>({
     id: "",
     primer_nombre: "",
@@ -132,7 +134,7 @@ export default function PerfilDueno() {
           style={styles.logo}
           resizeMode="contain"
         />
-        <TouchableOpacity>
+        <TouchableOpacity onPress={() => router.push("/")}>
           <Image
             source={require("../../assets/images/navegacion/iconosalir.png")}
             style={styles.iconSalir}

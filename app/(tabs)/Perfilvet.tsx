@@ -18,6 +18,8 @@ export default function PerfilVeterinario() {
   const [segundoNombre, setSegundoNombre] = useState("");
   const [primerApellido, setPrimerApellido] = useState("");
   const [segundoApellido, setSegundoApellido] = useState("");
+  const [nombres, setNombres] = useState("");
+  const [apellidos, setApellidos] = useState("");
   const [correo, setCorreo] = useState("");
   const [telefono, setTelefono] = useState("");
   const [especializacion, setEspecializacion] = useState("");
@@ -35,19 +37,29 @@ export default function PerfilVeterinario() {
         setIdVet(id);
 
         const res = await axios.get(`${BASE_URL}/api/veterinarios/detalle/${id}`);
-        const { vet, especializaciones } = res.data;
+        const { vet, especializaciones: vetEspecializaciones } = res.data;
 
         setPrimerNombre(vet.primer_nombre || "");
         setSegundoNombre(vet.segundo_nombre || "");
         setPrimerApellido(vet.primer_apellido || "");
         setSegundoApellido(vet.segundo_apellido || "");
+        setNombres(`${vet.primer_nombre || ""} ${vet.segundo_nombre || ""}`.trim());
+        setApellidos(`${vet.primer_apellido || ""} ${vet.segundo_apellido || ""}`.trim());
         setCorreo(vet.correo_electronico || "");
         setTelefono(vet.telefono || "");
         setInformacion(vet.descripcion_de_perfil || "");
-        setFotoPerfil(vet.foto ? `${BASE_URL}/pethub/${vet.foto}` : null);
+        if (vet.foto) {
+          if (vet.foto.startsWith('http') || vet.foto.startsWith('file')) {
+            setFotoPerfil(vet.foto);
+          } else {
+            setFotoPerfil(`${BASE_URL}/pethub/${vet.foto}`);
+          }
+        } else {
+          setFotoPerfil(null);
+        }
 
-        if (especializaciones.length > 0) {
-          setEspecializacion(especializaciones[0].nombre);
+        if (vetEspecializaciones.length > 0) {
+          setEspecializacion(vetEspecializaciones[0].nombre);
         }
       } catch (error: any) {
         console.error("Error al cargar perfil:", error);
@@ -75,6 +87,11 @@ export default function PerfilVeterinario() {
     if (!idVet) return Alert.alert("Error", "No se pudo identificar al veterinario.");
 
     try {
+      let fotoFilename = null;
+      if (fotoPerfil) {
+        fotoFilename = fotoPerfil.split('/').pop();
+      }
+
       await axios.put(`${BASE_URL}/api/veterinarios/${idVet}`, {
         primer_nombre: primerNombre,
         segundo_nombre: segundoNombre,
@@ -84,7 +101,7 @@ export default function PerfilVeterinario() {
         telefono,
         especializacion,
         informacion,
-        foto: fotoPerfil,
+        foto: fotoFilename,
       });
 
       Alert.alert("Éxito", "Perfil actualizado correctamente.");
@@ -110,7 +127,35 @@ export default function PerfilVeterinario() {
       quality: 0.8,
     });
 
-    if (!resultado.canceled) setFotoPerfil(resultado.assets[0].uri);
+    if (!resultado.canceled) {
+      const uri = resultado.assets[0].uri;
+      
+      if (idVet) {
+        const formData = new FormData();
+        const fileName = uri.split('/').pop();
+        const fileType = fileName.split('.').pop();
+
+        formData.append('foto', {
+          uri,
+          name: fileName,
+          type: `image/${fileType}`,
+        });
+
+        try {
+          const response = await axios.post(`${BASE_URL}/upload/veterinario/${idVet}`, formData, {
+            headers: {
+              'Content-Type': 'multipart/form-data',
+            },
+          });
+          // The backend returns the filename, so we can update the state with the full URL
+          setFotoPerfil(`${BASE_URL}/pethub/${response.data.ruta}`);
+          Alert.alert("Éxito", "Foto de perfil actualizada.");
+        } catch (error) {
+          console.error("Error al subir la foto:", error);
+          Alert.alert("Error", "No se pudo subir la foto de perfil.");
+        }
+      }
+    }
   };
 
   return (
@@ -120,7 +165,7 @@ export default function PerfilVeterinario() {
           source={require("../../assets/images/navegacion/Pata.png")}
           style={styles.logo}
         />
-        <TouchableOpacity>
+        <TouchableOpacity onPress={() => router.push("/")}>
           <Image
             source={require("../../assets/images/navegacion/iconosalir.png")}
             style={styles.iconSalir}
@@ -150,27 +195,25 @@ export default function PerfilVeterinario() {
 
         <TextInput
           style={styles.input}
-          placeholder="Primer Nombre"
-          value={primerNombre}
-          onChangeText={setPrimerNombre}
+          placeholder="Nombres"
+          value={nombres}
+          onChangeText={(text) => {
+            setNombres(text);
+            const parts = text.split(" ");
+            setPrimerNombre(parts[0] || "");
+            setSegundoNombre(parts.slice(1).join(" ") || "");
+          }}
         />
         <TextInput
           style={styles.input}
-          placeholder="Segundo Nombre"
-          value={segundoNombre}
-          onChangeText={setSegundoNombre}
-        />
-        <TextInput
-          style={styles.input}
-          placeholder="Primer Apellido"
-          value={primerApellido}
-          onChangeText={setPrimerApellido}
-        />
-        <TextInput
-          style={styles.input}
-          placeholder="Segundo Apellido"
-          value={segundoApellido}
-          onChangeText={setSegundoApellido}
+          placeholder="Apellidos"
+          value={apellidos}
+          onChangeText={(text) => {
+            setApellidos(text);
+            const parts = text.split(" ");
+            setPrimerApellido(parts[0] || "");
+            setSegundoApellido(parts.slice(1).join(" ") || "");
+          }}
         />
         <TextInput
           style={styles.input}
