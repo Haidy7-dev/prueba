@@ -59,7 +59,7 @@ export default function PerfilVeterinario() {
             setFotoPerfil(`${BASE_URL}/pethub/${vet.foto}`);
           }
         } else {
-          setFotoPerfil(null);
+          setFotoPerfil(`${BASE_URL}/pethub/foto.png`);
         }
 
         if (vetEspecializaciones.length > 0) {
@@ -215,7 +215,7 @@ export default function PerfilVeterinario() {
             source={
               fotoPerfil
                 ? { uri: fotoPerfil }
-                : require("../../assets/images/navegacion/foto.png")
+                : { uri: `${BASE_URL}/pethub/foto.png` }
             }
             style={styles.profileImage}
           />

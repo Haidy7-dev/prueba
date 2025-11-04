@@ -51,6 +51,7 @@ export default function PerfilDueno() {
         const respuesta = await axios.get(`${BASE_URL}/api/usuario/${userId}`);
         const datos = respuesta.data;
 
+        // Actualizar el estado del perfil con los datos obtenidos
         setPerfil({
           id: datos.id || "",
           primer_nombre: datos.primer_nombre || "",
@@ -60,11 +61,19 @@ export default function PerfilDueno() {
           correo_electronico: datos.correo_electronico || "",
           direccion: datos.direccion || "",
           telefono: datos.telefono || "",
-          n_de_mascotas: datos.n_de_mascotas?.toString() || "0",
-          foto: datos.foto || "",
+          n_de_mascotas: datos.n_de_mascotas?.toString() || "",
+          foto: datos.foto || "foto.png",
         });
 
-        setFotoPerfil(datos.foto || null);
+        if (datos.foto) {
+          if (datos.foto.startsWith('http') || datos.foto.startsWith('file')) {
+            setFotoPerfil(datos.foto);
+          } else {
+            setFotoPerfil(`${BASE_URL}/pethub/${datos.foto}`);
+          }
+        } else {
+          setFotoPerfil(`${BASE_URL}/pethub/foto.png`);
+        }
       } catch (error) {
         console.error("❌ Error al cargar perfil:", error);
         Alert.alert("Error", "No se pudo cargar la información del perfil");
@@ -80,6 +89,12 @@ export default function PerfilDueno() {
       const userId = await AsyncStorage.getItem("userId");
       if (!userId) return Alert.alert("Error", "Usuario no identificado");
 
+      let fotoFilename = perfil.foto; // Por defecto, usa la foto existente
+      if (fotoPerfil) {
+        // Si hay una nueva foto seleccionada (que ya fue subida y tiene la URL completa)
+        fotoFilename = fotoPerfil.split('/').pop() || perfil.foto; // Extrae solo el nombre del archivo
+      }
+
       const datosActualizados = {
         primer_nombre: perfil.primer_nombre,
         segundo_nombre: perfil.segundo_nombre,
@@ -89,7 +104,7 @@ export default function PerfilDueno() {
         direccion: perfil.direccion,
         telefono: perfil.telefono,
         n_de_mascotas: perfil.n_de_mascotas,
-        foto: fotoPerfil || perfil.foto,
+        foto: fotoFilename, // Envía solo el nombre del archivo
       };
 
       await axios.put(`${BASE_URL}/api/usuario/${userId}`, datosActualizados);
@@ -117,7 +132,38 @@ export default function PerfilDueno() {
     });
 
     if (!resultado.canceled) {
-      setFotoPerfil(resultado.assets[0].uri);
+      const uri = resultado.assets[0].uri;
+
+      const userId = await AsyncStorage.getItem("userId");
+      if (!userId) {
+        Alert.alert("Error", "Usuario no identificado para subir la foto.");
+        return;
+      }
+
+      const formData = new FormData();
+      const fileName = uri.split('/').pop() || 'foto.jpg';
+      const fileType = fileName.split('.').pop() || 'jpg';
+
+      formData.append('foto', {
+        uri,
+        name: fileName,
+        type: `image/${fileType}`,
+      } as any);
+
+      try {
+        const response = await axios.post(`${BASE_URL}/upload/usuario/${userId}`, formData, {
+          headers: {
+            'Content-Type': 'multipart/form-data',
+          },
+        });
+        // El backend debe devolver la ruta completa o el nombre del archivo
+        // Asumiendo que devuelve { ruta: "nombre_del_archivo.jpg" }
+        setFotoPerfil(`${BASE_URL}/pethub/${response.data.ruta}`);
+        Alert.alert("Éxito", "Foto de perfil actualizada.");
+      } catch (error) {
+        console.error("Error al subir la foto:", error);
+        Alert.alert("Error", "No se pudo subir la foto de perfil.");
+      }
     }
   };
 
@@ -139,7 +185,7 @@ export default function PerfilDueno() {
             source={
               fotoPerfil
                 ? { uri: fotoPerfil }
-                : require("../../assets/images/navegacion/foto.png")
+                : { uri: `${BASE_URL}/pethub/foto.png` }
             }
             style={styles.profileImage}
             resizeMode="cover"
@@ -165,7 +211,6 @@ export default function PerfilDueno() {
             ["Correo electrónico", "correo_electronico"],
             ["Dirección", "direccion"],
             ["Teléfono", "telefono"],
-            ["Número de mascotas", "n_de_mascotas"],
           ] as [string, keyof PerfilUsuario][]
         ).map(([label, key]) => (
           <View key={key} style={{ width: "100%", marginBottom: 14 }}>

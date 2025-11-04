@@ -51,7 +51,7 @@ export default function Encabezado() {
   const pathname = usePathname();
 
   const showLogout = pathname === "/Perfilvet" || pathname === "/PerfilDueno";
-  const showNotificationBell = pathname === "/HomeDueno" || pathname === "/Iniciovet";
+  const showNotificationBell = ["/HomeDueno", "/AgendaDueno", "/MisMascotas", "/PerfilMascota", "/Iniciovet", "/Agendavet"].includes(pathname);
 
   const handleLogout = async () => {
     try {

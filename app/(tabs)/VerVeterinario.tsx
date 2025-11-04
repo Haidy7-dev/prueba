@@ -42,6 +42,8 @@ import BotonGeneral from "../../components/BotonGeneral";
 import Encabezado from "../../components/Encabezado";
 import MenuDueno from "../../components/MenuDueno";
 
+
+
 // --- Función para mostrar estrellas
 const computeStars = (prom: number) => {
   const full = Math.floor(prom);
@@ -76,6 +78,10 @@ export default function VerVeterinario() {
   const [selectedHour, setSelectedHour] = useState<string>("");
   const [loading, setLoading] = useState(true);
   const [bookingLoading, setBookingLoading] = useState(false);
+  const [imageError, setImageError] = useState(false);
+  const [mascotas, setMascotas] = useState<any[]>([]);
+  const [selectedMascota, setSelectedMascota] = useState<string>("");
+  const [userId, setUserId] = useState<string>("");
 
   // 🔹 Cargar datos del veterinario
   useEffect(() => {
@@ -86,7 +92,7 @@ export default function VerVeterinario() {
         setVeterinario(resp.data.vet);
         setEspecializaciones(resp.data.especializaciones || []);
         setHorarios(resp.data.horarios || []);
-        console.log("Fetched horarios:", resp.data.horarios); // Add this line
+        console.log("Fetched horarios:", resp.data.horarios);
         setServicios(resp.data.servicios || []);
       } catch (err) {
         console.error("Error al cargar el veterinario:", err);
@@ -98,8 +104,32 @@ export default function VerVeterinario() {
     cargarDatos();
   }, [id]);
 
+  // 🔹 Cargar mascotas del usuario
+  useEffect(() => {
+    const cargarMascotas = async () => {
+      try {
+        const storedUserId = await AsyncStorage.getItem("userId");
+        if (!storedUserId) {
+          Alert.alert("Error", "No se encontró el usuario logueado");
+          return;
+        }
+        setUserId(storedUserId);
+        const mascotasResponse = await axios.get(`${BASE_URL}/api/mascotas/usuario/${storedUserId}`);
+        const mascotasData = mascotasResponse.data;
+        setMascotas(mascotasData);
+        if (mascotasData.length > 0) {
+          setSelectedMascota(mascotasData[0].id.toString());
+        }
+      } catch (err) {
+        console.error("Error al cargar mascotas:", err);
+        Alert.alert("Error", "No fue posible cargar las mascotas.");
+      }
+    };
+    cargarMascotas();
+  }, []);
+
   const horariosPorDia = useMemo(() => {
-    const dayOrder = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"];
+    const dayOrder = ["Domingo", "Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado"];
     const grouped: Record<string, { start: string; end: string }[]> = {};
     horarios.forEach((h) => {
       if (!grouped[h.dia_semana]) {
@@ -111,7 +141,7 @@ export default function VerVeterinario() {
     for (const day in grouped) {
       grouped[day].sort((a, b) => a.start.localeCompare(b.start));
     }
-    
+
     const sortedGrouped: Record<string, { start: string; end: string }[]> = {};
     dayOrder.forEach(day => {
       if (grouped[day]) {
@@ -141,11 +171,13 @@ export default function VerVeterinario() {
   }, [horarios]);
 
   // 🔹 Mapear día de la semana numérico a español
-  const getDiaSemana = (dateString: string) => {
-    const date = new Date(dateString);
-    const dias = ["Domingo", "Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado"];
-    return dias[date.getDay()];
-  };
+const getDiaSemana = (dateString: string) => {
+  // Evita que el Date lo interprete como UTC
+  const [year, month, day] = dateString.split("-").map(Number);
+  const date = new Date(year, month - 1, day); // ← Esto crea la fecha en hora local
+  const dias = ["Domingo", "Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado"];
+  return dias[date.getDay()];
+};
 
   // 🔹 Generar horas válidas basadas en el día seleccionado
   const generarHorasValidas = (selectedDate: string) => {
@@ -178,6 +210,7 @@ export default function VerVeterinario() {
   // 🔹 Agendar cita
   const handleAgendar = async () => {
     if (!selectedServicio) return Alert.alert("Seleccione un servicio");
+    if (!selectedMascota) return Alert.alert("Seleccione una mascota");
     if (!selectedDate) return Alert.alert("Seleccione una fecha");
     if (!selectedHour) return Alert.alert("Seleccione una hora");
 
@@ -190,15 +223,13 @@ export default function VerVeterinario() {
         return;
       }
 
-      const id_mascota = 1; // ⚠️ Temporal hasta integrar selección de mascota
-
       const payload = {
         fecha: selectedDate,
         hora_inicio: selectedHour,
         id_veterinario: id, // viene desde useLocalSearchParams()
         id_servicio: selectedServicio,
         id_usuario,
-        id_mascota,
+        id_mascota: selectedMascota,
         modalidad: "Presencial",
         id_estado_cita: 1, // Establecer estado como 'Pendiente'
       };
@@ -243,11 +274,12 @@ export default function VerVeterinario() {
           <View style={styles.infoSuperior}>
             <Image
               source={
-                veterinario.foto
+                veterinario.foto && !imageError
                   ? { uri: `${BASE_URL}/pethub/${veterinario.foto}` }
-                  : require("../../assets/images/navegacion/foto.png")
+                  : { uri: `${BASE_URL}/pethub/foto.png` }
               }
               style={styles.foto}
+              onError={() => setImageError(true)}
             />
             <View style={styles.infoTexto}>
               <Text style={styles.nombre}>{veterinario.nombre}</Text>
@@ -273,7 +305,7 @@ export default function VerVeterinario() {
           </Text>
           <Text style={styles.descripcion}>
             {veterinario.descripcion_de_perfil || "Sin descripción disponible."}
-          </Text>
+        </Text>
         </View>
 
         <View style={styles.lineaVerde} />
@@ -315,6 +347,28 @@ export default function VerVeterinario() {
         </View>
 
         <View style={styles.contenedorTexto}>
+          <Text style={styles.titulo}>Selecciona una mascota</Text>
+          {mascotas.length > 0 ? (
+            <Picker
+              selectedValue={selectedMascota}
+              onValueChange={(v) => setSelectedMascota(v)}
+              style={styles.picker}
+            >
+              <Picker.Item label="Selecciona una mascota" value="" />
+              {mascotas.map((m: any) => (
+                <Picker.Item
+                  key={m.id}
+                  label={m.nombre}
+                  value={m.id.toString()}
+                />
+              ))}
+            </Picker>
+          ) : (
+            <Text style={styles.noMascotas}>No tienes mascotas registradas. Registra una mascota primero.</Text>
+          )}
+        </View>
+
+        <View style={styles.contenedorTexto}>
           <Text style={styles.titulo}>Selecciona una fecha</Text>
           <View style={styles.calendarContainer}>
             <Calendar
@@ -342,7 +396,7 @@ export default function VerVeterinario() {
                 stylesheet: {
                   calendar: {
                     header: {
-                      
+
                     }
                   }
                 }
@@ -386,7 +440,7 @@ export default function VerVeterinario() {
         <View style={{ padding: 16 }}>
           <BotonGeneral
             title={bookingLoading ? "Agendando..." : "Agendar cita"}
-            disabled={bookingLoading}
+            disabled={bookingLoading || mascotas.length === 0}
             onPress={handleAgendar}
           />
         </View>
@@ -420,6 +474,7 @@ const styles = StyleSheet.create({
   servicioNombre: { fontWeight: "bold", fontSize: 15, color: "#333" },
   servicioDetalle: { fontSize: 14, color: "#555", marginLeft: 10, marginBottom: 3 },
   picker: { backgroundColor: "#f4f4f4", borderRadius: 8, marginTop: 8 },
+  noMascotas: { fontSize: 14, color: "#666", marginTop: 8 },
   horasScroll: { marginVertical: 12, paddingHorizontal: 16 },
   hora: { borderWidth: 1, borderColor: "#ccc", borderRadius: 10, paddingVertical: 10, paddingHorizontal: 14, marginRight: 10 },
   horaSeleccionada: { backgroundColor: "#479454", borderColor: "#479454" },

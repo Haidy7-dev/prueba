@@ -1,6 +1,7 @@
 import React from "react";
 import { View, Text, StyleSheet, Image } from "react-native";
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
+import { BASE_URL } from "@/config/api";
 
 interface ResumenCitaCardProps {
   nombre_mascota: string;
@@ -48,8 +49,8 @@ export default function ResumenCitaCard({
           <Image
             source={
               fotoMascota
-                ? { uri: fotoMascota }
-                : require("../assets/images/navegacion/foto.png")
+                ? { uri: `${BASE_URL}/pethub/${fotoMascota}` }
+                : { uri: `${BASE_URL}/pethub/foto.png` }
             }
             style={styles.profileImage}
             resizeMode="cover"

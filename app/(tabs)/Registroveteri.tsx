@@ -72,16 +72,46 @@ export default function RegistroVeteri() {
   //  Enviar datos al backend
   const handleRegistro = async () => {
     if (!id || !primerNombre || !primerApellido || !correo || !contrasena) {
-      Alert.alert("Campos incompletos", "Por favor llena todos los campos obligatorios.");
+      Alert.alert(
+        "Campos incompletos",
+        "Por favor llena todos los campos obligatorios."
+      );
+      return;
+    }
+
+    // Validación de correo electrónico
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(correo)) {
+      Alert.alert(
+        "Correo inválido",
+        "Por favor ingresa un correo electrónico válido."
+      );
       return;
     }
 
     if (telefono && telefono.length > 15) {
-      Alert.alert("Error", "El número de teléfono no puede tener más de 15 dígitos.");
+      Alert.alert(
+        "Error",
+        "El número de teléfono no puede tener más de 15 dígitos."
+      );
       return;
     }
 
     try {
+      // Verificar si el usuario ya existe
+      const verificationResponse = await axios.post(
+        `${BASE_URL}/api/verificar-usuario`,
+        {
+          id,
+          correo_electronico: correo,
+        }
+      );
+
+      if (verificationResponse.data.exists) {
+        Alert.alert("Error de registro", verificationResponse.data.message);
+        return;
+      }
+
       const requestBody: any = {
         id,
         primer_nombre: primerNombre,
@@ -101,26 +131,43 @@ export default function RegistroVeteri() {
         requestBody.servicios = serviciosSeleccionados;
       }
 
-      const response = await axios.post(`${BASE_URL}/api/registroVeterina`, requestBody);
+      const response = await axios.post(
+        `${BASE_URL}/api/registroVeterina`,
+        requestBody
+      );
 
       if (response.status === 201) {
         // Guardar automáticamente la sesión del veterinario registrado
         await AsyncStorage.setItem("userId", id.toString());
         await AsyncStorage.setItem("userType", "veterinario");
 
-        Alert.alert("✅ Registro exitoso", "Veterinario registrado correctamente.");
+        Alert.alert(
+          "✅ Registro exitoso",
+          "Veterinario registrado correctamente."
+        );
         router.replace("./Iniciovet"); // Usar replace para evitar volver al registro
       }
     } catch (error: any) {
       console.error("❌ Error al registrar veterinario:", error);
       if (error.response) {
         console.error("Respuesta de error del servidor:", error.response.data);
-        Alert.alert("Error", `No se pudo registrar el veterinario: ${error.response.data.message || 'Error desconocido'}`);
+        Alert.alert(
+          "Error",
+          `No se pudo registrar el veterinario: ${
+            error.response.data.message || "Error desconocido"
+          }`
+        );
       } else if (error.request) {
         console.error("No se recibió respuesta del servidor:", error.request);
-        Alert.alert("Error", "No se pudo conectar al servidor. Verifique su conexión a internet.");
+        Alert.alert(
+          "Error",
+          "No se pudo conectar al servidor. Verifique su conexión a internet."
+        );
       } else {
-        Alert.alert("Error", "Ocurrió un error inesperado al registrar el veterinario");
+        Alert.alert(
+          "Error",
+          "Ocurrió un error inesperado al registrar el veterinario"
+        );
       }
     }
   };

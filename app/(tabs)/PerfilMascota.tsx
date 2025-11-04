@@ -1,5 +1,6 @@
 import BotonGeneral from "@/components/BotonGeneral";
 import MenuDueno from "@/components/MenuDueno";
+import Encabezado from "@/components/Encabezado";
 import { BASE_URL } from "@/config/api";
 import { Feather } from "@expo/vector-icons";
 import { Picker } from "@react-native-picker/picker";
@@ -173,17 +174,19 @@ export default function PerfilMascota() {
       behavior={Platform.OS === "ios" ? "padding" : "height"}
     >
       <View style={styles.mainContainer}>
+        <Encabezado />
+
         <ScrollView contentContainerStyle={styles.scrollContainer}>
           {/* FOTO DE PERFIL */}
           <View style={styles.avatarWrapper}>
-            <Image
-              source={
-                fotoPerfil
-                  ? { uri: `${BASE_URL}/pethub/${fotoPerfil}` }
-                  : require("../../assets/images/navegacion/foto1.png")
-              }
-              style={styles.avatar}
-            />
+          <Image
+            source={
+              fotoPerfil
+                ? { uri: `${BASE_URL}/pethub/${fotoPerfil}` }
+                : { uri: `${BASE_URL}/pethub/foto.png` }
+            }
+            style={styles.avatar}
+          />
             <TouchableOpacity
               style={styles.editIconContainer}
               onPress={seleccionarImagen}

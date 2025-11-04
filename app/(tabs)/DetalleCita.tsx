@@ -7,7 +7,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import axios from "axios";
 import { useLocalSearchParams } from "expo-router";
 import React, { useEffect, useState } from "react";
-import { ActivityIndicator, Alert, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { ActivityIndicator, Alert, ScrollView, StyleSheet, Text, TouchableOpacity, View, SafeAreaView } from "react-native";
 import EstrellaCalificacion from "@/components/EstrellaCalificacion";
 
 interface ResumenCita {
@@ -120,9 +120,13 @@ export default function DetalleCita() {
   };
 
   return (
-    <View style={{ flex: 1, backgroundColor: "#fff" }}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: "#fff" }}>
       <Encabezado />
-      <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
+      <ScrollView
+        style={{ flex: 1 }}
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+      >
         <ResumenCitaCard
           nombre_mascota={resumen.nombre_mascota}
           sexo_mascota={resumen.sexo_mascota}
@@ -141,34 +145,19 @@ export default function DetalleCita() {
           fotoMascota={resumen.fotoMascota}
         />
 
-        {/* Mostrar calificación solo si no está calificada y es usuario */}
-        {userType === "usuario" && resumen.calificada === 0 && (
-          <View style={styles.calificacionContainer}>
-            <Text style={styles.calificacionTitle}>Califica al veterinario</Text>
-            <EstrellaCalificacion
-              rating={rating}
-              onRatingChange={setRating}
-              size={40}
-              color="#FFB800"
-            />
-            <TouchableOpacity style={styles.botonCalificar} onPress={handleCalificar}>
-              <Text style={styles.textoBotonCalificar}>Calificar</Text>
-            </TouchableOpacity>
-          </View>
-        )}
+
       </ScrollView>
 
       {userType === "veterinario" ? <MenuVet /> : null}
       {userType === "usuario" ? <MenuDueno /> : null}
-    </View>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#fff",
+  scrollContent: {
     paddingHorizontal: 16,
+    paddingBottom: 100, // Space for menu
   },
   loaderContainer: {
     flex: 1,

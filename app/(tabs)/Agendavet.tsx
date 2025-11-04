@@ -131,41 +131,42 @@ export default function AgendaVet() {
           <Text style={styles.noCitas}>No hay citas {tab === "pasadas" ? "pasadas" : "futuras"}.</Text>
         ) : (
           citasFiltradas.map((item) => (
-            <MascotaCard
-              key={item.id}
-              nombre={item.nombreMascota}
-              hora={`${item.hora_inicio} - ${item.hora_finalizacion}`}
-              fecha={new Date(item.fecha).toLocaleDateString("es-CO")}
-              tipo={item.servicio}
-              foto={
-                item.foto
-                  ? { uri: item.foto }
-                  : require("../../assets/images/navegacion/foto.png")
-              }
-              botones={
-                tab === "pasadas"
-                  ? [
-                      {
-                        texto: "Culminó",
-                        onPress: () => {
-                          actualizarEstado(item.id, 2);
+            <TouchableOpacity key={item.id} onPress={() => router.push(`/(tabs)/DetalleCita?idCita=${item.id}`)}>
+              <MascotaCard
+                nombre={item.nombreMascota}
+                hora={`${item.hora_inicio} - ${item.hora_finalizacion}`}
+                fecha={new Date(item.fecha).toLocaleDateString("es-CO")}
+                tipo={item.servicio}
+                foto={
+                  item.foto
+                    ? { uri: `${BASE_URL}/pethub/${item.foto}` }
+                    : { uri: `${BASE_URL}/pethub/foto.png` }
+                }
+                botones={
+                  tab === "pasadas"
+                    ? [
+                        {
+                          texto: "Culminó",
+                          onPress: () => {
+                            actualizarEstado(item.id, 2);
+                          },
+                          disabled: item.id_estado_cita === 2,
                         },
-                        disabled: item.id_estado_cita === 2,
-                      },
-                      {
-                        texto: "No asistió",
-                        onPress: () => {
-                          actualizarEstado(item.id, 3);
+                        {
+                          texto: "No asistió",
+                          onPress: () => {
+                            actualizarEstado(item.id, 3);
+                          },
+                          disabled: item.id_estado_cita === 3,
                         },
-                        disabled: item.id_estado_cita === 3,
-                      },
-                    ]
-                  : []
-              }
-              isCompleted={tab === "futuras"}
-              appointmentId={tab === "futuras" ? item.id : undefined}
-              estado={item.id_estado_cita}
-            />
+                      ]
+                    : []
+                }
+                isCompleted={tab === "futuras"}
+                appointmentId={item.id}
+                estado={item.id_estado_cita}
+              />
+            </TouchableOpacity>
           ))
         )}
       </ScrollView>

@@ -28,6 +28,7 @@ interface Cita {
   id_estado_cita: number;
   calificada: number; // 1 if rated, 0 if not
   id_veterinario_o_zootecnista: string;
+  id_servicio: string;
 }
 
 export default function AgendaDueno() {
@@ -156,22 +157,23 @@ export default function AgendaDueno() {
             }
 
             return (
-              <MascotaCard
-                key={item.id}
-                nombre={item.nombre_mascota}
-                hora={`${item.hora_inicio} - ${item.hora_finalizacion}`}
-                fecha={new Date(item.fecha).toLocaleDateString("es-CO", { timeZone: 'America/Bogota' })}
-                tipo={item.nombre_servicio}
-                foto={
-                  item.foto
-                    ? { uri: item.foto }
-                    : require("../../assets/images/navegacion/foto.png")
-                }
-                botones={botones}
-                isCompleted={estaCulminada}
-                appointmentId={item.id}
-                estado={item.id_estado_cita}
-              />
+              <TouchableOpacity key={item.id} onPress={() => router.push(`/(tabs)/DetalleCita?idCita=${item.id}`)}>
+                <MascotaCard
+                  nombre={item.nombre_mascota}
+                  hora={`${item.hora_inicio} - ${item.hora_finalizacion}`}
+                  fecha={new Date(item.fecha).toLocaleDateString("es-CO", { timeZone: 'America/Bogota' })}
+                  tipo={item.nombre_servicio}
+                  foto={
+                    item.foto
+                      ? { uri: `${BASE_URL}/pethub/${item.foto}` }
+                      : { uri: `${BASE_URL}/pethub/foto.png` }
+                  }
+                  botones={botones}
+                  isCompleted={estaCulminada}
+                  appointmentId={item.id}
+                  estado={item.id_estado_cita}
+                />
+              </TouchableOpacity>
             );
           })
         )}

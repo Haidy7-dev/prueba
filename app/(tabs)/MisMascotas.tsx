@@ -5,6 +5,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
 import { BASE_URL } from '@/config/api';
 import MenuDueno from '@/components/MenuDueno';
+import Encabezado from '@/components/Encabezado';
 
 // Define el tipo para una mascota
 interface Mascota {
@@ -17,9 +18,9 @@ interface Mascota {
 // Componente para la tarjeta de una mascota
 const PetCard = ({ mascota, onPress }: { mascota: Mascota; onPress: () => void }) => (
   <TouchableOpacity style={styles.card} onPress={onPress}>
-    <Image 
-      source={mascota.foto ? { uri: `${BASE_URL}/pethub/`+ mascota.foto } : require('../../assets/images/navegacion/foto1.png')} 
-      style={styles.petImage} 
+    <Image
+      source={mascota.foto ? { uri: `${BASE_URL}/pethub/${mascota.foto}` } : require('../../assets/images/navegacion/foto1.png')}
+      style={styles.petImage}
     />
     <Text style={styles.petName}>{mascota.nombre}</Text>
   </TouchableOpacity>
@@ -64,8 +65,10 @@ export default function MisMascotas() {
 
   return (
     <View style={styles.container}>
+      <Encabezado />
+
       <Text style={styles.title}>Mis Mascotas</Text>
-      
+
       {mascotas.length > 0 ? (
         <FlatList
           data={mascotas}
@@ -128,7 +131,7 @@ const styles = StyleSheet.create({
   },
   addButton: {
     position: 'absolute',
-    bottom: 80, // Ajusta según la altura de tu menú
+    bottom: 120, // Ajusta según la altura de tu menú
     right: 30,
     backgroundColor: '#14841C',
     width: 60,

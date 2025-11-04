@@ -21,7 +21,8 @@ export default function Horariosvet() {
     { nombre: "Jue", valor: "Jueves" },
     { nombre: "Vie", valor: "Viernes" },
     { nombre: "Sáb", valor: "Sábado" },
-    { nombre: "Dom", valor: "Domingo" },
+     { nombre: "Dom", valor: "Domingo" },
+ 
   ];
 
   const [horariosPorDia, setHorariosPorDia] = useState<
@@ -80,6 +81,7 @@ export default function Horariosvet() {
 
   // 🔹 Agregar bloque horario a un día
   const agregarBloque = (dia: string) => {
+    console.log("Agregando bloque para día:", dia);
     setHorariosPorDia((prev) => ({
       ...prev,
       [dia]: [...(prev[dia] || []), { inicio: null, fin: null }],
@@ -91,6 +93,16 @@ export default function Horariosvet() {
     setHorariosPorDia((prev) => {
       const nuevoDia = [...(prev[dia] || [])];
       nuevoDia[index][tipo] = hora;
+      return { ...prev, [dia]: nuevoDia };
+    });
+  };
+
+  // 🔹 Eliminar bloque horario de un día
+  const eliminarBloque = (dia: string, index: number) => {
+    console.log("Eliminando bloque para día:", dia, "índice:", index);
+    setHorariosPorDia((prev) => {
+      const nuevoDia = [...(prev[dia] || [])];
+      nuevoDia.splice(index, 1); // Eliminar el bloque en el índice dado
       return { ...prev, [dia]: nuevoDia };
     });
   };
@@ -210,6 +222,12 @@ export default function Horariosvet() {
                     </TouchableOpacity>
                   ))}
                 </ScrollView>
+                <TouchableOpacity
+                  style={styles.botonEliminar}
+                  onPress={() => eliminarBloque(dia.valor, index)}
+                >
+                  <Text style={styles.textoEliminar}>Eliminar bloque</Text>
+                </TouchableOpacity>
               </View>
             ))}
 
@@ -307,6 +325,21 @@ const styles = StyleSheet.create({
   textoAgregar: {
     color: "#14841C",
     fontWeight: "600",
+    fontSize: 14,
+  },
+  botonEliminar: {
+    backgroundColor: "#FF6347", // Tomato color for delete
+    borderRadius: 12,
+    paddingVertical: 8,
+    paddingHorizontal: 15,
+    alignItems: "center",
+    justifyContent: "center",
+    marginTop: 10,
+    alignSelf: "flex-start", // Align to the start of the container
+  },
+  textoEliminar: {
+    color: "#fff",
+    fontWeight: "bold",
     fontSize: 14,
   },
 });

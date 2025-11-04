@@ -42,26 +42,49 @@ export default function RegistroUsuario() {
 
   const handleRegistro = async () => {
     const { id, primer_nombre, primer_apellido, correo_electronico, contrasena } = form;
-
+  
     if (!id || !primer_nombre || !primer_apellido || !correo_electronico || !contrasena) {
       Alert.alert("Campos obligatorios", "Por favor completa los campos requeridos.");
       return;
     }
-
+  
+    // Validación de correo electrónico
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(correo_electronico)) {
+      Alert.alert("Correo inválido", "Por favor ingresa un correo electrónico válido.");
+      return;
+    }
+  
     setLoading(true);
     try {
+      // Verificar si el usuario ya existe
+      const verificationResponse = await axios.post(`${BASE_URL}/api/verificar-usuario`, {
+        id,
+        correo_electronico,
+      });
+  
+      if (verificationResponse.data.exists) {
+        Alert.alert("Error de registro", verificationResponse.data.message);
+        setLoading(false);
+        return;
+      }
+  
+      // Si no existe, proceder con el registro
       const response = await axios.post(`${BASE_URL}/api/usuario`, form);
       console.log("✅ Usuario guardado:", response.data);
-
+  
       // Guardar automáticamente la sesión del usuario registrado
       await AsyncStorage.setItem("userId", id.toString());
       await AsyncStorage.setItem("userType", "usuario");
-
+  
       Alert.alert("Éxito", "Usuario registrado correctamente.");
       router.replace("./HomeDueno"); // Usar replace para evitar volver al registro
     } catch (error: any) {
       console.error("❌ Error al registrar:", error);
-      Alert.alert("Error", error.response?.data?.message || "No se pudo registrar el usuario");
+      Alert.alert(
+        "Error",
+        error.response?.data?.message || "No se pudo registrar el usuario"
+      );
     } finally {
       setLoading(false);
     }

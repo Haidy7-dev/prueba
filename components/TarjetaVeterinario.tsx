@@ -54,7 +54,7 @@ export default function TarjetaVeterinario({ veterinario, onPress }: Props) {
         source={
           veterinario.foto
             ? { uri: `${BASE_URL}/pethub/${veterinario.foto}` }
-            : require('../assets/images/navegacion/foto.png')
+            : { uri: `${BASE_URL}/pethub/foto.png` }
         }
         style={styles.foto}
         resizeMode="cover"
