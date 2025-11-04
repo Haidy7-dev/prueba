@@ -8,7 +8,19 @@ import axios from "axios";
 import * as ImagePicker from "expo-image-picker";
 import { useLocalSearchParams } from "expo-router";
 import React, { useEffect, useState } from "react";
-import { ActivityIndicator, Alert, Image, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View, } from "react-native";
+import {
+  ActivityIndicator,
+  Alert,
+  Image,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
+} from "react-native";
 
 export default function PerfilMascota() {
   const { id } = useLocalSearchParams(); // Debe recibirse como idMascota desde la navegación
@@ -64,7 +76,10 @@ export default function PerfilMascota() {
       setRazaSeleccionada(mascota.id_raza?.toString() || "");
       setFotoPerfil(mascota.foto || null);
     } catch (error: any) {
-      console.log("❌ Error al cargar perfil:", error.response?.data || error.message);
+      console.log(
+        "❌ Error al cargar perfil:",
+        error.response?.data || error.message
+      );
       Alert.alert("Error", "No se pudo cargar la información de la mascota.");
     } finally {
       setLoading(false);
@@ -98,29 +113,40 @@ export default function PerfilMascota() {
 
   // --- SUBIR FOTO SI ES NUEVA ---
   const subirFotoSiNueva = async () => {
-    if (!fotoPerfil || (!fotoPerfil.startsWith('file://') && !fotoPerfil.startsWith('content://'))) {
+    if (
+      !fotoPerfil ||
+      (!fotoPerfil.startsWith("file://") &&
+        !fotoPerfil.startsWith("content://"))
+    ) {
       // No es una foto nueva, devolver la existente
       return fotoPerfil;
     }
 
     try {
       const formData = new FormData();
-      formData.append('foto', {
+      formData.append("foto", {
         uri: fotoPerfil,
-        type: 'image/jpeg', // Ajustar según el tipo si es necesario
-        name: 'foto.jpg',
+        type: "image/jpeg", // Ajustar según el tipo si es necesario
+        name: "foto.jpg",
       } as any);
 
-      const response = await axios.post(`${BASE_URL}/upload/mascota/${id}`, formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
-      });
+      const response = await axios.post(
+        `${BASE_URL}/upload/mascota/${id}`,
+        formData,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        }
+      );
 
       console.log("📤 Foto subida:", response.data);
       return response.data.ruta; // Retornar la ruta del archivo subido
     } catch (error: any) {
-      console.log("❌ Error al subir foto:", error.response?.data || error.message);
+      console.log(
+        "❌ Error al subir foto:",
+        error.response?.data || error.message
+      );
       // En caso de error, devolver la foto existente para no perderla
       return fotoPerfil;
     }
@@ -153,9 +179,15 @@ export default function PerfilMascota() {
       // Actualizar el estado de la foto para refrescar la imagen mostrada
       setFotoPerfil(rutaFoto);
 
-      Alert.alert("Éxito", "El perfil de tu mascota ha sido guardado correctamente.");
+      Alert.alert(
+        "Éxito",
+        "El perfil de tu mascota ha sido guardado correctamente."
+      );
     } catch (error: any) {
-      console.log("❌ Error al guardar:", error.response?.data || error.message);
+      console.log(
+        "❌ Error al guardar:",
+        error.response?.data || error.message
+      );
       Alert.alert("Error", "No se pudo guardar la información.");
     }
   };
@@ -179,14 +211,14 @@ export default function PerfilMascota() {
         <ScrollView contentContainerStyle={styles.scrollContainer}>
           {/* FOTO DE PERFIL */}
           <View style={styles.avatarWrapper}>
-          <Image
-            source={
-              fotoPerfil
-                ? { uri: `${BASE_URL}/pethub/${fotoPerfil}` }
-                : { uri: `${BASE_URL}/pethub/foto.png` }
-            }
-            style={styles.avatar}
-          />
+            <Image
+              source={
+                fotoPerfil
+                  ? { uri: `${BASE_URL}/pethub/${fotoPerfil}` }
+                  : require('../../assets/images/navegacion/foto1.png')
+              }
+              style={styles.avatar}
+            />
             <TouchableOpacity
               style={styles.editIconContainer}
               onPress={seleccionarImagen}
@@ -242,7 +274,11 @@ export default function PerfilMascota() {
             >
               <Picker.Item label="Seleccione una raza" value="" />
               {razas.map((r: any) => (
-                <Picker.Item key={r.id_raza} label={r.nombre} value={r.id_raza.toString()} />
+                <Picker.Item
+                  key={r.id_raza}
+                  label={r.nombre}
+                  value={r.id_raza.toString()}
+                />
               ))}
             </Picker>
           </View>
@@ -265,15 +301,65 @@ export default function PerfilMascota() {
 // --- ESTILOS ---
 const styles = StyleSheet.create({
   keyboardContainer: { flex: 1, backgroundColor: "#fff" },
-  mainContainer: { flex: 1, justifyContent: "space-between", backgroundColor: "#fff" },
+  mainContainer: {
+    flex: 1,
+    justifyContent: "space-between",
+    backgroundColor: "#fff",
+  },
   scrollContainer: { alignItems: "center", paddingVertical: 30 },
-  avatarWrapper: { position: "relative", alignItems: "center", justifyContent: "center", marginBottom: 15 },
-  avatar: { width: 130, height: 130, borderRadius: 70, backgroundColor: "#E0E0E0" },
-  editIconContainer: { position: "absolute", bottom: 8, right: 8, backgroundColor: "#fff", borderRadius: 20, padding: 6, borderWidth: 1, borderColor: "#000" },
-  titulo: { fontSize: 20, fontWeight: "bold", alignSelf: "flex-start", marginLeft: "10%", marginTop: 10 },
-  label: { alignSelf: "flex-start", marginLeft: "10%", marginTop: 10, fontSize: 14 },
-  input: { width: "80%", height: 40, borderWidth: 1.5, borderColor: "#14841C", borderRadius: 8, paddingHorizontal: 10, marginTop: 5 },
-  pickerContainer: { width: "80%", height: 45, borderWidth: 1.5, borderColor: "#14841C", borderRadius: 8, justifyContent: "center", marginTop: 5 },
+  avatarWrapper: {
+    position: "relative",
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: 15,
+  },
+  avatar: {
+    width: 130,
+    height: 130,
+    borderRadius: 70,
+    backgroundColor: "#E0E0E0",
+  },
+  editIconContainer: {
+    position: "absolute",
+    bottom: 8,
+    right: 8,
+    backgroundColor: "#fff",
+    borderRadius: 20,
+    padding: 6,
+    borderWidth: 1,
+    borderColor: "#000",
+  },
+  titulo: {
+    fontSize: 20,
+    fontWeight: "bold",
+    alignSelf: "flex-start",
+    marginLeft: "10%",
+    marginTop: 10,
+  },
+  label: {
+    alignSelf: "flex-start",
+    marginLeft: "10%",
+    marginTop: 10,
+    fontSize: 14,
+  },
+  input: {
+    width: "80%",
+    height: 40,
+    borderWidth: 1.5,
+    borderColor: "#14841C",
+    borderRadius: 8,
+    paddingHorizontal: 10,
+    marginTop: 5,
+  },
+  pickerContainer: {
+    width: "80%",
+    height: 45,
+    borderWidth: 1.5,
+    borderColor: "#14841C",
+    borderRadius: 8,
+    justifyContent: "center",
+    marginTop: 5,
+  },
   botonContainer: { width: "80%", marginTop: 20 },
-  menuContainer: { marginTop: 10 },
+  menuContainer: { marginTop: 50},
 });

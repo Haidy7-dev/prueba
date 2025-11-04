@@ -42,8 +42,7 @@ export default function AgendaVet() {
 
       const citasProcesadas = citasData.map((cita) => {
         const ahora = new Date();
-        const fechaFormateada = cita.fecha.split('T')[0];
-        const citaFechaHora = new Date(`${fechaFormateada}T${cita.hora_inicio}`);
+        const citaFechaHora = new Date(`${cita.fecha.split('T')[0]}T${cita.hora_inicio}`);
 
         return { ...cita, esPasada: citaFechaHora < ahora };
       });

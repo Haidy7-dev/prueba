@@ -36,7 +36,7 @@ const styles = StyleSheet.create({
     width: screenWidth * 0.8,
   },
   disabled: {
-    backgroundColor: '#A5C8A2', // más claro cuando está deshabilitado
+    backgroundColor: '#393b39ff', 
   },
   buttonText: {
     color: '#FFFFFF',

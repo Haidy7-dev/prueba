@@ -6,7 +6,7 @@ import axios from "axios";
 import { useRouter } from "expo-router";
 import moment from "moment";
 import "moment/locale/es";
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { Alert, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, TouchableOpacity, View, } from "react-native";
 
 moment.locale("es");
@@ -28,6 +28,9 @@ export default function Horariosvet() {
   const [horariosPorDia, setHorariosPorDia] = useState<
     Record<string, { inicio: string | null; fin: string | null }[]>
   >({});
+  const [horariosIniciales, setHorariosIniciales] = useState<
+    Record<string, { inicio: string; fin: string }[]>
+  >({});
   const [cargando, setCargando] = useState(false);
   const [idVet, setIdVet] = useState<string | null>(null);
 
@@ -43,8 +46,8 @@ export default function Horariosvet() {
   // 🔹 Horas
   const horas: string[] = [];
   for (let h = 6; h <= 23; h++) {
-    horas.push(`${h}:00`);
-    horas.push(`${h}:30`);
+    horas.push(`${h.toString().padStart(2, '0')}:00`);
+    horas.push(`${h.toString().padStart(2, '0')}:30`);
   }
 
   // 🔹 Cargar horarios del veterinario
@@ -65,6 +68,7 @@ export default function Horariosvet() {
           });
         });
         setHorariosPorDia(agrupado);
+        setHorariosIniciales(agrupado); // Guardar estado inicial para comparar cambios
       } catch (error: any) {
         if (error.response && error.response.status === 404) {
           // No schedules found, which is a valid case.
@@ -79,38 +83,94 @@ export default function Horariosvet() {
     cargarHorarios();
   }, [idVet]);
 
+  // 🔹 Función para verificar solapamientos
+  const verificarSolapamiento = useCallback((dia: string, nuevoInicio: string, nuevoFin: string) => {
+    const bloquesExistentes = horariosPorDia[dia] || [];
+    for (const bloque of bloquesExistentes) {
+      if (bloque.inicio && bloque.fin) {
+        const inicioExistente = moment(bloque.inicio, "H:mm");
+        const finExistente = moment(bloque.fin, "H:mm");
+        const inicioNuevo = moment(nuevoInicio, "H:mm");
+        const finNuevo = moment(nuevoFin, "H:mm");
+
+        // Verificar si el nuevo inicio está dentro del bloque existente
+        if (inicioNuevo.isSameOrAfter(inicioExistente) && inicioNuevo.isBefore(finExistente)) {
+          return true; // Solapamiento
+        }
+      }
+    }
+    return false; // No solapamiento
+  }, [horariosPorDia]);
+
   // 🔹 Agregar bloque horario a un día
-  const agregarBloque = (dia: string) => {
+  const agregarBloque = useCallback((dia: string) => {
     console.log("Agregando bloque para día:", dia);
+    // Verificar si hay bloques incompletos o solapamientos
+    const bloques = horariosPorDia[dia] || [];
+    const hayIncompleto = bloques.some(b => !b.inicio || !b.fin);
+    if (hayIncompleto) {
+      Alert.alert("Completa el bloque anterior", "Debes completar el inicio y fin del bloque anterior antes de agregar uno nuevo.");
+      return;
+    }
+    // Agregar nuevo bloque vacío
     setHorariosPorDia((prev) => ({
       ...prev,
       [dia]: [...(prev[dia] || []), { inicio: null, fin: null }],
     }));
-  };
+  }, [horariosPorDia]);
 
   // 🔹 Cambiar hora en un bloque
-  const setHora = (dia: string, index: number, tipo: "inicio" | "fin", hora: string) => {
+  const setHora = useCallback((dia: string, index: number, tipo: "inicio" | "fin", hora: string) => {
     setHorariosPorDia((prev) => {
       const nuevoDia = [...(prev[dia] || [])];
       nuevoDia[index][tipo] = hora;
       return { ...prev, [dia]: nuevoDia };
     });
-  };
+  }, []);
 
   // 🔹 Eliminar bloque horario de un día
-  const eliminarBloque = (dia: string, index: number) => {
+  const eliminarBloque = useCallback((dia: string, index: number) => {
     console.log("Eliminando bloque para día:", dia, "índice:", index);
     setHorariosPorDia((prev) => {
       const nuevoDia = [...(prev[dia] || [])];
       nuevoDia.splice(index, 1); // Eliminar el bloque en el índice dado
       return { ...prev, [dia]: nuevoDia };
     });
-  };
+  }, []);
+
+  // 🔹 Función para comparar si hay cambios
+  const hayCambios = useCallback(() => {
+    const diasActuales = Object.keys(horariosPorDia);
+    const diasIniciales = Object.keys(horariosIniciales);
+
+    if (diasActuales.length !== diasIniciales.length) return true;
+
+    for (const dia of diasActuales) {
+      const bloquesActuales = horariosPorDia[dia] || [];
+      const bloquesIniciales = horariosIniciales[dia] || [];
+
+      if (bloquesActuales.length !== bloquesIniciales.length) return true;
+
+      for (let i = 0; i < bloquesActuales.length; i++) {
+        const actual = bloquesActuales[i];
+        const inicial = bloquesIniciales[i];
+
+        if (actual.inicio !== inicial.inicio || actual.fin !== inicial.fin) return true;
+      }
+    }
+
+    return false;
+  }, [horariosPorDia, horariosIniciales]);
 
   // 🔹 Guardar horarios en BD
   const guardarHorario = async () => {
     if (!idVet) {
       Alert.alert("Error", "No se encontró el ID del veterinario.");
+      return;
+    }
+
+    if (!hayCambios()) {
+      Alert.alert("Sin cambios", "No hay cambios para guardar.");
       return;
     }
 

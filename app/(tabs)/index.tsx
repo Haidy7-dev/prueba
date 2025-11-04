@@ -38,7 +38,7 @@ export default function Index() {
             ¡Bienvenido a <Text style={styles.negrilla}>Patas sin Barreras!</Text>
           </Text>
           <Text style={styles.texto}>
-            Porque cuidar a tu mascota nunca fue tan fácil.
+            Una aplicacion que promueve la tenencia responsable y el bienestar animal.
           </Text>
           <Text style={styles.texto}>¡Empieza a agendar hoy mismo!</Text>
         </View>

@@ -39,8 +39,12 @@ export default function InicioVet() {
 
       const response = await axios.get(`${BASE_URL}/api/citasVeterinario/${idVet}`);
       const today = new Date();
-      const todayString = today.toISOString().split('T')[0];
-      const citasHoy = response.data.filter((cita: Cita) => cita.fecha.split('T')[0] === todayString);
+      const todayString = today.getFullYear() + '-' + String(today.getMonth() + 1).padStart(2, '0') + '-' + String(today.getDate()).padStart(2, '0');
+      const citasHoy = response.data.filter((cita: Cita) => {
+        const citaDate = new Date(cita.fecha);
+        const citaString = citaDate.getFullYear() + '-' + String(citaDate.getMonth() + 1).padStart(2, '0') + '-' + String(citaDate.getDate()).padStart(2, '0');
+        return citaString === todayString;
+      });
       setCitas(citasHoy);
     } catch (error) {
       console.error("❌ Error al obtener las citas:", error);
@@ -84,7 +88,7 @@ export default function InicioVet() {
                 tipo={item.servicio}
                 foto={
                   item.foto
-                    ? { uri: item.foto }
+                    ? { uri: `${BASE_URL}/pethub/${item.foto}` }
                     : { uri: `${BASE_URL}/pethub/foto.png` }
                 }
                 estado={item.id_estado_cita}

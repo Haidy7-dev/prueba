@@ -42,10 +42,6 @@ export default function DetalleCita() {
   const [userType, setUserType] = useState<string | null>(null);
   const [rating, setRating] = useState(0);
 
-  // Show alert on screen load
-  useEffect(() => {
-    Alert.alert("Navegación Exitosa", `Has llegado a DetalleCita para la cita con ID: ${idCita}`);
-  }, [idCita]);
 
   // 🧩 Obtener tipo de usuario
   useEffect(() => {
